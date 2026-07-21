@@ -69,6 +69,7 @@ public class UnidadService implements IUnidadService {
         unidad.setCode(dto.getCode());
         unidad.setName(dto.getName());
         unidad.setCodType(dto.getCodType());
+        unidad.setCodStatus(dto.getCodStatus());
 
         Unidad updated = unidadRepository.save(unidad);
         return Unidad.toRespDTO(updated);

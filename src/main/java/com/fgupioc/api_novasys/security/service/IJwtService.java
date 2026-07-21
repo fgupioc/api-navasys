@@ -1,0 +1,21 @@
+package com.fgupioc.api_novasys.security.service;
+
+import com.fgupioc.api_novasys.models.User;
+import com.fgupioc.api_novasys.security.models.UserView;
+import org.springframework.security.core.userdetails.UserDetails;
+
+public interface IJwtService {
+    String generateToken(User user) throws Exception;
+
+    String generateRefreshToken(User user) throws Exception;
+
+    String getTokenFormRequest(String token);
+
+    boolean isTokenValid(String token, UserDetails userDetails);
+
+    boolean validateRefreshToken(String refreshToken);
+
+    String getDocumentFromRefreshToken(String refreshToken);
+
+    UserView decodeToken(String token);
+}

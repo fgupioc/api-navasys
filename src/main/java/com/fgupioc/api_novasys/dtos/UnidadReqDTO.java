@@ -25,4 +25,7 @@ public class UnidadReqDTO {
 
     @NotBlank(message = "El tipo es obligatorio")
     private String codType;
+
+    @NotBlank(message = "El estado es obligatorio")
+    private String codStatus;
 }
