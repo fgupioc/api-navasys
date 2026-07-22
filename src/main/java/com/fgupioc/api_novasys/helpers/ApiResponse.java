@@ -37,7 +37,6 @@ public class ApiResponse<T> {
         return new ApiResponse<>(false, message, null, LocalDateTime.now().toString());
     }
 
-    // Método auxiliar para crear respuestas de error
     public static Map<String, Object> createErrorResponse(String message, HttpStatus status) {
         Map<String, Object> response = new HashMap<>();
         response.put("success", false);

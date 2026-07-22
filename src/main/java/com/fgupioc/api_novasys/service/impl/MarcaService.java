@@ -44,13 +44,13 @@ public class MarcaService implements IMarcaService {
     @Override
     @Transactional
     public MarcaRespDTO create(MarcaReqDTO dto) {
-        if (unidadRepository.existsByCode(dto.getCode())) {
-            throw new DuplicateResourceException("Ya existe una unidad con el código: " + dto.getCode());
+        if (unidadRepository.existsByCode(dto.code())) {
+            throw new DuplicateResourceException("Ya existe una unidad con el código: " + dto.code());
         }
 
         Marca unidad = new Marca();
-        unidad.setCode(dto.getCode());
-        unidad.setName(dto.getName());
+        unidad.setCode(dto.code());
+        unidad.setName(dto.name());
 
         Marca saved = unidadRepository.save(unidad);
         return Marca.toRespDTO(saved);
@@ -61,13 +61,13 @@ public class MarcaService implements IMarcaService {
     public MarcaRespDTO update(Long id, MarcaReqDTO dto) {
         Marca unidad = findEntityById(id);
 
-        if (!unidad.getCode().equals(dto.getCode()) && unidadRepository.existsByCode(dto.getCode())) {
-            throw new DuplicateResourceException("Ya existe una unidad con el código: " + dto.getCode());
+        if (!unidad.getCode().equals(dto.code()) && unidadRepository.existsByCode(dto.code())) {
+            throw new DuplicateResourceException("Ya existe una unidad con el código: " + dto.code());
         }
 
-        unidad.setCode(dto.getCode());
-        unidad.setName(dto.getName());
-        unidad.setCodStatus(dto.getCodStatus());
+        unidad.setCode(dto.code());
+        unidad.setName(dto.name());
+        unidad.setCodStatus(dto.codStatus());
 
         Marca updated = unidadRepository.save(unidad);
         return Marca.toRespDTO(updated);

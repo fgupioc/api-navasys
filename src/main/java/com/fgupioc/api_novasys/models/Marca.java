@@ -37,11 +37,11 @@ public class Marca extends BaseEntity {
     }
 
     public static MarcaRespDTO toRespDTO(Marca marca) {
-        return MarcaRespDTO.builder()
-                .id(marca.getId())
-                .code(marca.getCode())
-                .name(marca.getName())
-                .codStatus(marca.getCodStatus())
-                .build();
+        return new MarcaRespDTO(
+                marca.getId(),
+                marca.getCode(),
+                marca.getName(),
+                marca.getCodStatus()
+        );
     }
 }

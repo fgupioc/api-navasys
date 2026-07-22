@@ -44,14 +44,14 @@ public class UnidadService implements IUnidadService {
     @Override
     @Transactional
     public UnidadRespDTO create(UnidadReqDTO dto) {
-        if (unidadRepository.existsByCode(dto.getCode())) {
-            throw new DuplicateResourceException("Ya existe una unidad con el código: " + dto.getCode());
+        if (unidadRepository.existsByCode(dto.code())) {
+            throw new DuplicateResourceException("Ya existe una unidad con el código: " + dto.code());
         }
 
         Unidad unidad = new Unidad();
-        unidad.setCode(dto.getCode());
-        unidad.setName(dto.getName());
-        unidad.setCodType(dto.getCodType());
+        unidad.setCode(dto.code());
+        unidad.setName(dto.name());
+        unidad.setCodType(dto.codType());
 
         Unidad saved = unidadRepository.save(unidad);
         return Unidad.toRespDTO(saved);
@@ -62,14 +62,14 @@ public class UnidadService implements IUnidadService {
     public UnidadRespDTO update(Long id, UnidadReqDTO dto) {
         Unidad unidad = findEntityById(id);
 
-        if (!unidad.getCode().equals(dto.getCode()) && unidadRepository.existsByCode(dto.getCode())) {
-            throw new DuplicateResourceException("Ya existe una unidad con el código: " + dto.getCode());
+        if (!unidad.getCode().equals(dto.code()) && unidadRepository.existsByCode(dto.code())) {
+            throw new DuplicateResourceException("Ya existe una unidad con el código: " + dto.code());
         }
 
-        unidad.setCode(dto.getCode());
-        unidad.setName(dto.getName());
-        unidad.setCodType(dto.getCodType());
-        unidad.setCodStatus(dto.getCodStatus());
+        unidad.setCode(dto.code());
+        unidad.setName(dto.name());
+        unidad.setCodType(dto.codType());
+        unidad.setCodStatus(dto.codStatus());
 
         Unidad updated = unidadRepository.save(unidad);
         return Unidad.toRespDTO(updated);

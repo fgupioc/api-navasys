@@ -41,6 +41,7 @@ public class SecurityConfig {
                         .requestMatchers(SWAGGER_WHITELIST).permitAll()
                         .requestMatchers("/api/unidades/**").permitAll()
                         .requestMatchers("/api/marcas/**").permitAll()
+                        .requestMatchers("/api/categorias/**").permitAll()
                         .requestMatchers("/api/maestro/**").permitAll()
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/ws-viatra/**").permitAll()

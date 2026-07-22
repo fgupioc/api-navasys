@@ -39,12 +39,12 @@ public class Unidad extends BaseEntity {
     }
 
     public static UnidadRespDTO toRespDTO(Unidad unidad) {
-        return UnidadRespDTO.builder()
-                .id(unidad.getId())
-                .code(unidad.getCode())
-                .name(unidad.getName())
-                .codType(unidad.getCodType())
-                .codStatus(unidad.getCodStatus())
-                .build();
+        return new UnidadRespDTO(
+                unidad.getId(),
+                unidad.getCode(),
+                unidad.getName(),
+                unidad.getCodType(),
+                unidad.getCodStatus()
+        );
     }
 }
