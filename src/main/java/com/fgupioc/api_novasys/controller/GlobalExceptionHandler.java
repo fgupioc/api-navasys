@@ -1,13 +1,11 @@
 package com.fgupioc.api_novasys.controller;
 
-import com.fgupioc.api_novasys.helpers.ApiResponse;
-import com.fgupioc.api_novasys.helpers.DuplicateResourceException;
-import com.fgupioc.api_novasys.helpers.InvalidRequestException;
-import com.fgupioc.api_novasys.helpers.ResourceNotFoundException;
+import com.fgupioc.api_novasys.helpers.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
+import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -50,6 +48,18 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<?>> handleOptimisticLock(ObjectOptimisticLockingFailureException ex) {
         log.warn("Conflicto de concurrencia en asiento: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ApiResponse.error("El asiento ya fue actualizado, refresca el mapa de asientos"));
+    }
+
+    @ExceptionHandler(InvalidFileException.class)
+    public ResponseEntity<ApiResponse<?>> handleInvalidFile(InvalidFileException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error("El asiento ya fue actualizado, refresca el mapa de asientos"));
+    }
+
+    @ExceptionHandler(FileStorageException.class)
+    public ResponseEntity<ApiResponse<?>> handleFileStorage(FileStorageException ex) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ApiResponse.error("El asiento ya fue actualizado, refresca el mapa de asientos"));
     }
 }

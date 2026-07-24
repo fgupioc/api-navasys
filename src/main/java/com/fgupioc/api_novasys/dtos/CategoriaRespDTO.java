@@ -13,4 +13,7 @@ public record CategoriaRespDTO(
         String codStatus,
         CategoriaParentRespDTO parent
 ) {
+    public CategoriaRespDTO(Long id, String code, String name) {
+        this(id, code, name, "", null);
+    }
 }

@@ -1,6 +1,7 @@
 package com.fgupioc.api_novasys.models;
 
 import com.fgupioc.api_novasys.dtos.ProveedorReqDTO;
+import com.fgupioc.api_novasys.dtos.ProveedorRespDTO;
 import com.fgupioc.api_novasys.helpers.CONST;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -32,6 +33,20 @@ public class Proveedor extends BaseEntity {
     private String phone;
     @Column(name = "cod_status")
     private String codStatus;
+
+    public static ProveedorRespDTO toRespDTO(Proveedor proveedor) {
+        if (proveedor == null) {
+            return null;
+        }
+        return new ProveedorRespDTO(
+                proveedor.getId(),
+                proveedor.getRuc(),
+                proveedor.getName(),
+                proveedor.getContact(),
+                proveedor.getPhone(),
+                proveedor.getCodStatus()
+        );
+    }
 
     @PrePersist
     public void prePersist() {

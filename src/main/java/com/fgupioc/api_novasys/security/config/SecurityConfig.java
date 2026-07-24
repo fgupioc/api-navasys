@@ -43,6 +43,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/marcas/**").permitAll()
                         .requestMatchers("/api/categorias/**").permitAll()
                         .requestMatchers("/api/proveedores/**").permitAll()
+                        .requestMatchers("/api/productos/**").permitAll()
                         .requestMatchers("/api/maestro/**").permitAll()
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/ws-viatra/**").permitAll()
