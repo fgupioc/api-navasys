@@ -72,9 +72,9 @@ public class ProductoService implements IProductoService {
                     .orElseThrow(() -> new ResourceNotFoundException("Unidad no encontrada: " + request.unitId()));
 
             Proveedor proveedor = null;
-            if (request.providerId() != null) {
-                proveedor = proveedorRepository.findById(request.providerId())
-                        .orElseThrow(() -> new ResourceNotFoundException("Proveedor no encontrado: " + request.providerId()));
+            if (request.supplierId() != null) {
+                proveedor = proveedorRepository.findById(request.supplierId())
+                        .orElseThrow(() -> new ResourceNotFoundException("Proveedor no encontrado: " + request.supplierId()));
             }
             Integer count = productoRepository.countProductos();
             String codigo = categoria.getCode() + String.format("%06d", count + 1);
@@ -134,9 +134,9 @@ public class ProductoService implements IProductoService {
                 .orElseThrow(() -> new ResourceNotFoundException("Unidad no encontrada: " + request.unitId()));
 
         Proveedor proveedor = null;
-        if (request.providerId() != null) {
-            proveedor = proveedorRepository.findById(request.providerId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Proveedor no encontrado: " + request.providerId()));
+        if (request.supplierId() != null) {
+            proveedor = proveedorRepository.findById(request.supplierId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Proveedor no encontrado: " + request.supplierId()));
         }
 
         producto.setName(request.name());

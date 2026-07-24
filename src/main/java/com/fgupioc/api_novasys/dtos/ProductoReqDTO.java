@@ -8,7 +8,7 @@ public record ProductoReqDTO(
         Long subcategoryId,
         Long brandId,
         Long unitId,
-        Long providerId,
+        Long supplierId,
         String codStatus
 ) {
 }

@@ -62,7 +62,7 @@ public class Producto extends BaseEntity {
     private Unidad unidad;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "provider_id", nullable = true)
+    @JoinColumn(name = "supplier_id", nullable = true)
     private Proveedor proveedor;
 
     @Column(name = "cod_status")
