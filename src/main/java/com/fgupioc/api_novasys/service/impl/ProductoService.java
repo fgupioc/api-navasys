@@ -5,6 +5,7 @@ import com.fgupioc.api_novasys.dtos.ProductoRespDTO;
 import com.fgupioc.api_novasys.dtos.mappers.ProductoMapper;
 import com.fgupioc.api_novasys.helpers.ResourceNotFoundException;
 import com.fgupioc.api_novasys.models.*;
+import com.fgupioc.api_novasys.models.interfaces.ProductoAutocompledado;
 import com.fgupioc.api_novasys.repository.*;
 import com.fgupioc.api_novasys.service.IImagenStorageService;
 import com.fgupioc.api_novasys.service.IProductoService;
@@ -184,5 +185,11 @@ public class ProductoService implements IProductoService {
 
         // Elimina el producto
         productoRepository.delete(producto);
+    }
+
+    @Override
+    public List<ProductoAutocompledado> buscarAutocompletado(String term) throws RuntimeException {
+        String normalizado = (term == null || term.isBlank()) ? null : term.trim();
+        return productoRepository.buscarProductos(normalizado);
     }
 }

@@ -43,6 +43,8 @@ public class Producto extends BaseEntity {
 
     private String description;
 
+    private String barcode;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)
     private Categoria categoria;

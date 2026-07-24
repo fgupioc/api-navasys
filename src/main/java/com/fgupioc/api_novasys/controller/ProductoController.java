@@ -89,4 +89,9 @@ public class ProductoController {
         productoService.eliminar(uuid);
         return ResponseEntity.ok(ApiResponse.success("Producto eliminado exitosamente", null));
     }
+
+    @GetMapping("buscar-autocompletado")
+    public ResponseEntity<?> buscarAutocompletado(@RequestParam(required = false) String term) {
+        return ResponseEntity.ok(ApiResponse.success(productoService.buscarAutocompletado(term)));
+    }
 }
