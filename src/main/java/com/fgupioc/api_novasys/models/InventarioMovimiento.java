@@ -7,6 +7,8 @@ import lombok.*;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
+import java.math.BigDecimal;
+
 /**
  * @author fgupioc - FRANZ
  * @version 1.0
@@ -32,22 +34,22 @@ public class InventarioMovimiento extends BaseEntity {
      */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
-    private Producto product;
+    private Producto producto;
 
     /**
      * Almacén
      */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "warehouse_id", nullable = false)
-    private Almacen warehouse;
+    private Almacen almacen;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "movement_type", nullable = false)
-    private InventarioMovimientoTipo movementType;
+    private InventarioMovimientoTipo tipoMovimiento;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "reference_type", nullable = false)
-    private InventarioReferenciaTipo referenceType;
+    private InventarioReferenciaTipo tipoReferencia;
 
     /**
      * Id de la compra, venta, transferencia...
@@ -64,6 +66,8 @@ public class InventarioMovimiento extends BaseEntity {
     /**
      * Costo unitario del movimiento
      */
-    private Double unitCost;
+    private BigDecimal unitCost;
+
+    private BigDecimal discount;
 
 }

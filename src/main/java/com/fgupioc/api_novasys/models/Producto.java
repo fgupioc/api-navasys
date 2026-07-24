@@ -6,6 +6,7 @@ import lombok.*;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -67,6 +68,18 @@ public class Producto extends BaseEntity {
 
     @Column(name = "cod_status")
     private String codStatus;
+
+    @Column(name = "last_cost")
+    private BigDecimal lastCost;
+
+    @Column(name = "sale_price")
+    private BigDecimal salePrice;
+
+    @Column(name = "minimum_sale_price")
+    private BigDecimal minimumSalePrice; // opcional
+
+    @Column(name = "wholesale_price")
+    private BigDecimal wholesalePrice;   // opcional
 
     @OneToMany(mappedBy = "producto", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default

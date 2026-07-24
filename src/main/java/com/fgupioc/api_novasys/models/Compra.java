@@ -10,6 +10,7 @@ import org.hibernate.annotations.SQLRestriction;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.UUID;
 
 /**
  * @author fgupioc - FRANZ
@@ -30,6 +31,7 @@ public class Compra extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private UUID uuid;
     @Column(unique = true, nullable = false, length = 20)
     private String code;
 
@@ -39,7 +41,7 @@ public class Compra extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "warehouse_id", nullable = false)
-    private Almacen warehouse;
+    private Almacen almacen;
 
     @Column(name = "purchase_date", nullable = false)
     private LocalDate purchaseDate;
@@ -82,29 +84,8 @@ public class Compra extends BaseEntity {
 
     @PrePersist
     public void prePersist() {
-        codStatus = CONST.STATUS_ACTIVE;
+        this.codStatus = CONST.STATUS_ACTIVE;
+        this.uuid = UUID.randomUUID();
     }
 
-    /*
-    public static PurchaseRespDTO toRespDTO(Purchase purchase) {
-        return new PurchaseRespDTO(
-                purchase.getId(),
-                purchase.getCode(),
-                purchase.getSupplier() != null ? purchase.getSupplier().getId() : null,
-                purchase.getWarehouse() != null ? purchase.getWarehouse().getId() : null,
-                purchase.getPurchaseDate(),
-                purchase.getDocumentType(),
-                purchase.getDocumentSeries(),
-                purchase.getDocumentNumber(),
-                purchase.getPaymentType(),
-                purchase.getCurrency(),
-                purchase.getObservation(),
-                purchase.getSubtotal(),
-                purchase.getDiscount(),
-                purchase.getTax(),
-                purchase.getTotal(),
-                purchase.getCodStatus()
-        );
-    }
-    */
 }

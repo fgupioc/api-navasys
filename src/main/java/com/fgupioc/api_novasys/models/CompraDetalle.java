@@ -5,6 +5,8 @@ import lombok.*;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
+import java.math.BigDecimal;
+
 /**
  * @author fgupioc - FRANZ
  * @version 1.0
@@ -17,8 +19,8 @@ import org.hibernate.annotations.SQLRestriction;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "compra_detaller")
-@SQLDelete(sql = "UPDATE compra_detaller SET deleted_at = NOW() WHERE id = ?")
+@Table(name = "compra_detalle")
+@SQLDelete(sql = "UPDATE compra_detalle SET deleted_at = NOW() WHERE id = ?")
 @SQLRestriction("deleted_at IS NULL")
 public class CompraDetalle extends BaseEntity {
 
@@ -49,16 +51,18 @@ public class CompraDetalle extends BaseEntity {
      * Costo unitario
      */
     @Column(name = "unit_cost")
-    private Double unitCost;
+    private BigDecimal unitCost;
+    @Column(name = "sale_price")
+    private BigDecimal salePrice;
 
     /**
      * Descuento aplicado
      */
-    private Double discount;
+    private BigDecimal discount;
 
     /**
      * Subtotal
      */
-    private Double subtotal;
+    private BigDecimal subtotal;
 
 }
