@@ -4,6 +4,8 @@ import com.fgupioc.api_novasys.dtos.CompraReqDTO;
 import com.fgupioc.api_novasys.helpers.ApiResponse;
 import com.fgupioc.api_novasys.service.ICompraService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -45,5 +47,14 @@ public class CompraController {
     @PutMapping("/actualizar/{uuid}")
     public ResponseEntity<?> actualizarCompra(@PathVariable UUID uuid, @RequestBody CompraReqDTO compraReqDTO) {
         return ResponseEntity.ok(ApiResponse.success(compraService.actualizarCompra(uuid, compraReqDTO)));
+    }
+
+    @GetMapping("/{uuid}/orden-compra/pdf")
+    public ResponseEntity<byte[]> descargarOrdenCompra(@PathVariable UUID uuid) throws Exception {
+        byte[] pdf = compraService.generar(uuid);
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=orden-compra.pdf")
+                .body(pdf);
     }
 }

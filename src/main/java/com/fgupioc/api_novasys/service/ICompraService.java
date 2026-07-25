@@ -18,4 +18,6 @@ public interface ICompraService {
     CompraRespDTO buscarCompra(UUID uuid) throws RuntimeException;
 
     CompraRespDTO actualizarCompra(UUID uuid, CompraReqDTO compraReqDTO) throws RuntimeException;
+
+    byte[] generar(UUID uuid) throws Exception;
 }

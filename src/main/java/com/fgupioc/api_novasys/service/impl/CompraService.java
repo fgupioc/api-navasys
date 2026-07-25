@@ -10,6 +10,7 @@ import com.fgupioc.api_novasys.models.enums.InventarioReferenciaTipo;
 import com.fgupioc.api_novasys.models.interfaces.CompraListado;
 import com.fgupioc.api_novasys.repository.*;
 import com.fgupioc.api_novasys.service.ICompraService;
+import com.fgupioc.api_novasys.service.OrdenCompraPdfService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -39,6 +40,7 @@ public class CompraService implements ICompraService {
     private final CompraDetalleRepository compraDetalleRepository;
     private final InventarioMovimientoRepository inventarioMovimientoRepository;
     private final ProductoRepository productoRepository;
+    private final OrdenCompraPdfService ordenCompraPdfService;
 
     @Override
     @Transactional
@@ -193,5 +195,10 @@ public class CompraService implements ICompraService {
                 .map(CompraProducto::toDetalleDTO)
                 .toList();
         return compraMapper.toRespDTO(compra, list);
+    }
+
+    @Override
+    public byte[] generar(UUID uuid) throws Exception {
+        return ordenCompraPdfService.generar(uuid);
     }
 }
