@@ -29,4 +29,9 @@ public class MaestroController {
     public ResponseEntity<?> listarTipoUnidades() {
         return ResponseEntity.ok(ApiResponse.success(maestroService.listarTipoUnidades()));
     }
+
+    @GetMapping("/estados-de-compra")
+    public ResponseEntity<?> listarEstadosDeCompra() {
+        return ResponseEntity.ok(ApiResponse.success(maestroService.listarEstadosDeCompra()));
+    }
 }

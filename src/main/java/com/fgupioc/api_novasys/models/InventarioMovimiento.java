@@ -22,9 +22,7 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @Entity
 @Table(name = "inventario_movimiento")
-@SQLDelete(sql = "UPDATE inventario_movimiento SET deleted_at = NOW() WHERE id = ?")
-@SQLRestriction("deleted_at IS NULL")
-public class InventarioMovimiento extends BaseEntity {
+public class InventarioMovimiento {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

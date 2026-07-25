@@ -2,8 +2,11 @@ package com.fgupioc.api_novasys.dtos.mappers;
 
 import com.fgupioc.api_novasys.dtos.*;
 import com.fgupioc.api_novasys.models.Compra;
+import com.fgupioc.api_novasys.models.CompraDetalle;
 import com.fgupioc.api_novasys.models.Producto;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 /**
  * @author fgupioc - FRANZ
@@ -37,7 +40,7 @@ public class CompraMapper {
         return compra;
     }
 
-    public CompraRespDTO toRespDTO(Compra compra) {
+    public CompraRespDTO toRespDTO(Compra compra, List<CompraProducto> list) {
         if (compra == null) {
             return null;
         }
@@ -59,7 +62,8 @@ public class CompraMapper {
                 compra.getTax(),
                 compra.getTotal(),
                 compra.getCodStatus(),
-                compra.getCreatedBy()
+                compra.getCreatedBy(),
+                list
         );
     }
 }

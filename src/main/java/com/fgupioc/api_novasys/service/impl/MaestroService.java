@@ -10,8 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-import static com.fgupioc.api_novasys.models.Maestro.ESTADO;
-import static com.fgupioc.api_novasys.models.Maestro.TIPO_UNIDAD;
+import static com.fgupioc.api_novasys.models.Maestro.*;
 
 /**
  * @author fgupioc - FRANZ
@@ -31,6 +30,7 @@ public class MaestroService implements IMaestroService {
         maestroRepository.findByIdTablaId(ESTADO);
         return maestroRepository.findByIdTablaId(ESTADO)
                 .stream()
+                .filter(maestro -> !maestro.getId().getCodigo().equals("-"))
                 .map(Maestro::toRespDTO)
                 .toList();
     }
@@ -39,6 +39,16 @@ public class MaestroService implements IMaestroService {
     public List<MaestroRespDTO> listarTipoUnidades() throws RuntimeException {
         return maestroRepository.findByIdTablaId(TIPO_UNIDAD)
                 .stream()
+                .filter(maestro -> !maestro.getId().getCodigo().equals("-"))
+                .map(Maestro::toRespDTO)
+                .toList();
+    }
+
+    @Override
+    public List<MaestroRespDTO> listarEstadosDeCompra() throws RuntimeException {
+        return maestroRepository.findByIdTablaId(ESTADO_DE_COMPRA)
+                .stream()
+                .filter(maestro -> !maestro.getId().getCodigo().equals("-"))
                 .map(Maestro::toRespDTO)
                 .toList();
     }

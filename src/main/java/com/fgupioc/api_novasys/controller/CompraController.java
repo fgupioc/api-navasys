@@ -5,10 +5,10 @@ import com.fgupioc.api_novasys.helpers.ApiResponse;
 import com.fgupioc.api_novasys.service.ICompraService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
+import java.util.UUID;
 
 /**
  * @author fgupioc - FRANZ
@@ -22,8 +22,28 @@ import org.springframework.web.bind.annotation.RestController;
 public class CompraController {
     private final ICompraService compraService;
 
+    @GetMapping("/buscar/{uuid}")
+    public ResponseEntity<?> buscarCompra(@PathVariable UUID uuid) {
+        return ResponseEntity.ok(ApiResponse.success(compraService.buscarCompra(uuid)));
+    }
+
+    @GetMapping("/listar")
+    public ResponseEntity<?> listarCompras() {
+        return ResponseEntity.ok(ApiResponse.success(compraService.listarCompras()));
+    }
+
+    @GetMapping("/filtro")
+    public ResponseEntity<?> filtrarCompras(@RequestParam(required = false) LocalDate desde, @RequestParam(required = false) LocalDate hasta, @RequestParam(required = false) Long supplierId, @RequestParam(required = false) String codStatus) {
+        return ResponseEntity.ok(ApiResponse.success(compraService.filtrarCompras(desde, hasta, supplierId, codStatus)));
+    }
+
     @PostMapping("/registrar")
     public ResponseEntity<?> registrarCompra(@RequestBody CompraReqDTO compraReqDTO) {
         return ResponseEntity.ok(ApiResponse.success(compraService.registrarCompra(compraReqDTO)));
+    }
+
+    @PutMapping("/actualizar/{uuid}")
+    public ResponseEntity<?> actualizarCompra(@PathVariable UUID uuid, @RequestBody CompraReqDTO compraReqDTO) {
+        return ResponseEntity.ok(ApiResponse.success(compraService.actualizarCompra(uuid, compraReqDTO)));
     }
 }

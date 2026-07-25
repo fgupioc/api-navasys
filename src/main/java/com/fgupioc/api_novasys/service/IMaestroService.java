@@ -8,4 +8,6 @@ public interface IMaestroService {
     List<MaestroRespDTO> listarTipoUnidades() throws RuntimeException;
 
     List<MaestroRespDTO> listarEstados() throws RuntimeException;
+
+    List<MaestroRespDTO> listarEstadosDeCompra() throws RuntimeException;
 }

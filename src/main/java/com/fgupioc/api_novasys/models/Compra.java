@@ -1,6 +1,5 @@
 package com.fgupioc.api_novasys.models;
 
-import com.fgupioc.api_novasys.helpers.CONST;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -26,6 +25,13 @@ import java.util.UUID;
 @SQLDelete(sql = "UPDATE compras SET deleted_at = NOW() WHERE id = ?")
 @SQLRestriction("deleted_at IS NULL")
 public class Compra extends BaseEntity {
+    public static String STATUS_BORRADOR = "1";
+    public static String STATUS_PENDIENTE = "2";
+    public static String STATUS_RECIBIDA = "3";
+    public static String STATUS_PARCIAL = "4";
+    public static String STATUS_COMPLETADA = "5";
+    public static String STATUS_ANULADA = "6";
+    public static String STATUS_DEVUELTA = "7";
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -73,6 +79,8 @@ public class Compra extends BaseEntity {
     @Column(precision = 12, scale = 2)
     private BigDecimal tax = BigDecimal.ZERO;
 
+    private BigDecimal taxApplied = BigDecimal.ZERO;
+
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal total;
 
@@ -84,7 +92,7 @@ public class Compra extends BaseEntity {
 
     @PrePersist
     public void prePersist() {
-        this.codStatus = CONST.STATUS_ACTIVE;
+        this.codStatus = STATUS_BORRADOR;
         this.uuid = UUID.randomUUID();
     }
 

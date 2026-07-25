@@ -1,5 +1,7 @@
 package com.fgupioc.api_novasys.dtos;
 
+import com.fgupioc.api_novasys.models.CompraDetalle;
+
 import java.math.BigDecimal;
 
 /**
@@ -22,4 +24,20 @@ public record CompraProducto(
         BigDecimal salePrice,
         BigDecimal discount
 ) {
+    public static CompraProducto toDetalleDTO(CompraDetalle compraDetalle) {
+        return new CompraProducto(
+                compraDetalle.getId(),
+                compraDetalle.getProducto().getBarcode(),
+                compraDetalle.getProducto().getCategoria().getName(),
+                compraDetalle.getProducto().getCode(),
+                compraDetalle.getProducto().getName(),
+                compraDetalle.getProducto().getSubcategoria().getName(),
+                compraDetalle.getProducto().getUnidad().getName(),
+                compraDetalle.getProducto().getImagenes().isEmpty() ? "" : compraDetalle.getProducto().getImagenes().getFirst().getUrl(),
+                compraDetalle.getQuantity(),
+                compraDetalle.getUnitCost(),
+                compraDetalle.getSalePrice(),
+                compraDetalle.getDiscount()
+        );
+    }
 }

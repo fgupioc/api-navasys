@@ -4,6 +4,7 @@ import com.fgupioc.api_novasys.models.Almacen;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -16,8 +17,8 @@ public record CompraRespDTO(
         Long id,
         UUID uuid,
         String code,
-        ProveedorRespDTO supplierId,
-        AlmacenRespDTO warehouseId,
+        ProveedorRespDTO supplier,
+        AlmacenRespDTO warehouse,
         LocalDate purchaseDate,
         String documentType,
         String documentSeries,
@@ -30,6 +31,8 @@ public record CompraRespDTO(
         BigDecimal tax,
         BigDecimal total,
         String codStatus,
-        Long createdBy
+        Long createdBy,
+        List<CompraProducto> detalles
 ) {
+
 }

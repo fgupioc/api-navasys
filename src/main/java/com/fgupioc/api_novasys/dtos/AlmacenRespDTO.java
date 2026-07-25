@@ -5,6 +5,7 @@ import com.fgupioc.api_novasys.models.Almacen;
 import java.util.UUID;
 
 public record AlmacenRespDTO(
+        Long id,
         UUID uuid,
         String code,
         String name,
@@ -18,6 +19,7 @@ public record AlmacenRespDTO(
             return null;
         }
         return new AlmacenRespDTO(
+                warehouse.getId(),
                 warehouse.getUuid(),
                 warehouse.getCode(),
                 warehouse.getName(),
