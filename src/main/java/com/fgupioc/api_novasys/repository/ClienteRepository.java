@@ -1,5 +1,6 @@
 package com.fgupioc.api_novasys.repository;
 
+import com.fgupioc.api_novasys.dtos.ClienteRespDTO;
 import com.fgupioc.api_novasys.models.Cliente;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -32,4 +33,16 @@ public interface ClienteRepository extends JpaRepository<Cliente, Long> {
 
     @Query("SELECT c FROM Cliente c WHERE c.documentNumber = :documentNumber AND c.id <> :id")
     Optional<Cliente> existsByDocumentNumberDistinct(Long id, String documentNumber);
+
+    @Query(value = """
+            select id,
+                   document_type,
+                   document_number,
+                   first_name,
+                   last_name
+            from clientes
+            where upper(trim(concat(document_number, ' ', first_name, ' ', last_name))) like upper(trim(concat('%', :term, '%')))
+            order by first_name asc;
+            """, nativeQuery = true)
+    List<ClienteRespDTO> autocompletado(@Param("term") String term);
 }

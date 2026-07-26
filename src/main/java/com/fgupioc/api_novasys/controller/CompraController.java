@@ -57,4 +57,10 @@ public class CompraController {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=orden-compra.pdf")
                 .body(pdf);
     }
+
+    @PutMapping("/anular/{uuid}")
+    public ResponseEntity<?> anularCompra(@PathVariable UUID uuid) {
+        compraService.anularCompra(uuid);
+        return ResponseEntity.ok(ApiResponse.success("Compra anulada correctamente", null));
+    }
 }

@@ -2,6 +2,7 @@ package com.fgupioc.api_novasys.service.impl;
 
 import com.fgupioc.api_novasys.dtos.ClienteReqDTO;
 import com.fgupioc.api_novasys.dtos.ClienteRespDTO;
+import com.fgupioc.api_novasys.helpers.ResourceNotFoundException;
 import com.fgupioc.api_novasys.models.Cliente;
 import com.fgupioc.api_novasys.repository.ClienteRepository;
 import com.fgupioc.api_novasys.service.IClienteService;
@@ -57,7 +58,7 @@ public class ClienteService implements IClienteService {
     @Override
     public ClienteRespDTO create(ClienteReqDTO dto) throws RuntimeException {
         clienteRepository.existsByDocumentNumber(dto.documentNumber()).ifPresent(cliente -> {
-            throw new RuntimeException("El cliente con número de documento " + dto.documentNumber() + " ya existe.");
+            throw new ResourceNotFoundException("El cliente con número de documento " + dto.documentNumber() + " ya existe.");
         });
         Cliente cliente = new Cliente();
         cliente.setDocumentType(dto.documentType());
@@ -107,5 +108,10 @@ public class ClienteService implements IClienteService {
         Cliente cliente = clienteRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Cliente no encontrado con id: " + id));
         clienteRepository.delete(cliente);
+    }
+
+    @Override
+    public List<ClienteRespDTO> autocompletado(String term) throws RuntimeException {
+        return clienteRepository.autocompletado(term);
     }
 }

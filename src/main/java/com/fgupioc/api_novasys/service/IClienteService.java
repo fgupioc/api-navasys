@@ -15,4 +15,6 @@ public interface IClienteService {
     ClienteRespDTO update(Long id, ClienteReqDTO dto) throws RuntimeException;
 
     void delete(Long id) throws RuntimeException;
+
+    List<ClienteRespDTO> autocompletado(String term) throws RuntimeException;
 }

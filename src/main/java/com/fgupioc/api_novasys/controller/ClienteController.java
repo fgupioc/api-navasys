@@ -58,4 +58,10 @@ public class ClienteController {
         clienteService.delete(id);
         return ResponseEntity.ok(ApiResponse.success("Cliente eliminada correctamente", null));
     }
+
+    @GetMapping("/autocompletado")
+    public ResponseEntity<ApiResponse<List<ClienteRespDTO>>> autocompletado(@RequestParam String term) {
+        List<ClienteRespDTO> resultados = clienteService.autocompletado(term);
+        return ResponseEntity.ok(ApiResponse.success(resultados));
+    }
 }

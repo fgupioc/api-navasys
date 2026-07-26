@@ -215,4 +215,12 @@ public class CompraService implements ICompraService {
     public byte[] generar(UUID uuid) throws Exception {
         return ordenCompraPdfService.generar(uuid);
     }
+
+    @Override
+    public void anularCompra(UUID uuid) throws RuntimeException {
+        Compra compra = compraRepository.findByUuid(uuid)
+                .orElseThrow(() -> new RuntimeException("Compra no encontrada"));
+        compra.setCodStatus("6");
+        compraRepository.save(compra);
+    }
 }
