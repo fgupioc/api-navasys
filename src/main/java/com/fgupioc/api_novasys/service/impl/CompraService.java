@@ -84,7 +84,7 @@ public class CompraService implements ICompraService {
                 purchaseDetail.setSubtotal(detail.unitCost().multiply(BigDecimal.valueOf(detail.quantity())).subtract(detail.discount()));
 
                 compraDetalleRepository.save(purchaseDetail);
-
+/*
                 InventarioMovimiento movement = new InventarioMovimiento();
 
                 movement.setProducto(producto);
@@ -97,6 +97,7 @@ public class CompraService implements ICompraService {
                 movement.setDiscount(detail.discount());
 
                 inventarioMovimientoRepository.save(movement);
+                */
 
             }
             return compraMapper.toRespDTO(save, List.of());
@@ -125,19 +126,30 @@ public class CompraService implements ICompraService {
             BigDecimal subtotal = total.divide(new BigDecimal("1.18"), 2, RoundingMode.HALF_UP);
             BigDecimal igv = total.subtract(subtotal);
 
-            compraDB.setAlmacen(almacen);
             compraDB.setProveedor(proveedor);
+            compraDB.setAlmacen(almacen);
+            compraDB.setPurchaseDate(compraRespDTO.purchaseDate());
+            compraDB.setDocumentSeries(compraRespDTO.documentSeries());
+            compraDB.setDocumentNumber(compraRespDTO.documentNumber());
+            compraDB.setDocumentType(compraRespDTO.documentType());
+            compraDB.setCurrency(compraRespDTO.currency());
+            compraDB.setPaymentType(compraRespDTO.paymentType());
+            compraDB.setObservation(compraRespDTO.observation());
+
             compraDB.setDiscount(new BigDecimal("0"));
             compraDB.setTax(igv);
             compraDB.setSubtotal(subtotal);
             compraDB.setTotal(total);
             compraDB.setTaxApplied(new BigDecimal("0.18"));
+            compraDB.setCodStatus(compraRespDTO.codStatus());
 
             Compra save = compraRepository.save(compraDB);
 
             List<CompraDetalle> detalles = compraDetalleRepository.findByCompra(compraDB);
-            for (CompraDetalle detalle : detalles) {
-                inventarioMovimientoRepository.deleteAllByReferenceId(detalle.getId());
+            if (compraRespDTO.codStatus().equalsIgnoreCase("5")) {
+                for (CompraDetalle detalle : detalles) {
+                    inventarioMovimientoRepository.deleteAllByReferenceId(detalle.getId());
+                }
             }
 
             compraDetalleRepository.deleteAll(detalles);
@@ -156,18 +168,20 @@ public class CompraService implements ICompraService {
 
                 compraDetalleRepository.save(purchaseDetail);
 
-                InventarioMovimiento movement = new InventarioMovimiento();
+                if (compraRespDTO.codStatus().equalsIgnoreCase("5")) {
+                    InventarioMovimiento movement = new InventarioMovimiento();
 
-                movement.setProducto(producto);
-                movement.setAlmacen(compraDB.getAlmacen());
-                movement.setTipoMovimiento(InventarioMovimientoTipo.PURCHASE_IN);
-                movement.setTipoReferencia(InventarioReferenciaTipo.PURCHASE);
-                movement.setReferenceId(purchaseDetail.getId());
-                movement.setQuantity(detail.quantity());
-                movement.setUnitCost(detail.unitCost());
-                movement.setDiscount(detail.discount());
+                    movement.setProducto(producto);
+                    movement.setAlmacen(compraDB.getAlmacen());
+                    movement.setTipoMovimiento(InventarioMovimientoTipo.PURCHASE_IN);
+                    movement.setTipoReferencia(InventarioReferenciaTipo.PURCHASE);
+                    movement.setReferenceId(purchaseDetail.getId());
+                    movement.setQuantity(detail.quantity());
+                    movement.setUnitCost(detail.unitCost());
+                    movement.setDiscount(detail.discount());
 
-                inventarioMovimientoRepository.save(movement);
+                    inventarioMovimientoRepository.save(movement);
+                }
             }
             return compraMapper.toRespDTO(save, List.of());
         } catch (RuntimeException e) {
