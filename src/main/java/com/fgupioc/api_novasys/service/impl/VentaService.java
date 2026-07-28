@@ -4,10 +4,7 @@ import com.fgupioc.api_novasys.dtos.VentaReqDTO;
 import com.fgupioc.api_novasys.helpers.ResourceNotFoundException;
 import com.fgupioc.api_novasys.models.*;
 import com.fgupioc.api_novasys.models.interfaces.VentaListado;
-import com.fgupioc.api_novasys.repository.ClienteRepository;
-import com.fgupioc.api_novasys.repository.ProductoRepository;
-import com.fgupioc.api_novasys.repository.VentaDetalleRepository;
-import com.fgupioc.api_novasys.repository.VentaRepository;
+import com.fgupioc.api_novasys.repository.*;
 import com.fgupioc.api_novasys.service.IVentaService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,6 +32,7 @@ public class VentaService implements IVentaService {
     private final ProductoRepository productoRepository;
     private final VentaRepository ventaRepository;
     private final VentaDetalleRepository ventaDetalleRepository;
+    private final VentaPagoRepository ventaPagoRepository;
 
     @Override
     public List<VentaListado> filtrarVentas(LocalDate desde, LocalDate hasta, Long customerId, String codStatus) throws RuntimeException {
@@ -63,6 +61,12 @@ public class VentaService implements IVentaService {
                 venta.setSubtotal(subtotal);
                 venta.setTotal(total);
                 venta.setTaxApplied(new BigDecimal("0.18"));
+                venta.setSaleDate(LocalDate.now());
+                if (ventaReqDTO.getCodStatus().equals(Venta.STATUS_COMPLETADA)) {
+                    venta.setDocumentSeries("CF01");
+                    Long countByDocumentType = ventaRepository.countByDocumentType("12");
+                    venta.setDocumentNumber(String.format("%06d", countByDocumentType + 1));
+                }
 
                 Venta savedVenta = ventaRepository.save(venta);
 
@@ -79,6 +83,18 @@ public class VentaService implements IVentaService {
                     detalle.setDiscount(detail.getDiscount());
                     detalle.setSubtotal(detail.getUnitPrice().multiply(BigDecimal.valueOf(detail.getQuantity())).subtract(detail.getDiscount()));
                     ventaDetalleRepository.save(detalle);
+                }
+
+                if (ventaReqDTO.getPagos() != null && !ventaReqDTO.getPagos().isEmpty()) {
+                    for (var pagoReq : ventaReqDTO.getPagos()) {
+                        VentaPago pago = new VentaPago();
+                        pago.setSale(savedVenta);
+                        pago.setMethod(pagoReq.getMethod());
+                        pago.setAmount(pagoReq.getAmount());
+                        pago.setReference("");
+                        ventaPagoRepository.save(pago);
+                    }
+
                 }
 
                 log.info("Venta registrada con éxito: {}", savedVenta.getId());

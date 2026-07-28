@@ -38,7 +38,9 @@ public class VentaReqDTO {
     private BigDecimal tax;
     private BigDecimal taxApplied;
     private BigDecimal total;
+    private String cashRegister;
     private List<VentaDetalleReqDTO> productos = new ArrayList<>();
+    private List<VentaPagoReqDTO> pagos = new ArrayList<>();
 
     public Venta toEntity() {
         return Venta.builder()
@@ -55,6 +57,7 @@ public class VentaReqDTO {
                 .tax(this.tax)
                 .taxApplied(this.taxApplied)
                 .total(this.total)
+                .cashRegister(this.cashRegister)
                 .build();
     }
 

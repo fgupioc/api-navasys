@@ -10,7 +10,9 @@ import org.hibernate.annotations.SQLRestriction;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -57,9 +59,16 @@ public class Venta extends BaseEntity {
     private BigDecimal taxApplied = BigDecimal.ZERO;
     private BigDecimal total;
     private String cashRegister;
+    @OneToMany(mappedBy = "sale", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<VentaPago> payments = new ArrayList<>();
 
     @PrePersist
     public void prePersist() {
         this.uuid = UUID.randomUUID();
+    }
+
+    public void addPayment(VentaPago p) {
+        payments.add(p);
+        p.setSale(this);
     }
 }

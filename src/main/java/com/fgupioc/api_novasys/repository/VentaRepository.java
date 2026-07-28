@@ -51,7 +51,7 @@ public interface VentaRepository extends JpaRepository<Venta, Long> {
                 from ventas v
             inner join clientes c on v.customer_id = c.id
             INNER JOIN maestro ms ON ms.tabla_id = 4 AND ms.codigo = v.cod_status
-            INNER JOIN maestro mp ON mp.tabla_id = 5 AND mp.codigo = v.payment_method
+            left JOIN maestro mp ON mp.tabla_id = 5 AND mp.codigo = v.payment_method
             where (:desde is null or v.created_at >= :desde)
               and (:hasta is null or v.created_at <= :hasta)
               and (:customerId is null or v.customer_id = :customerId)
@@ -65,4 +65,6 @@ public interface VentaRepository extends JpaRepository<Venta, Long> {
             @Param("codStatus") String codStatus
     );
 
+    @Query("select count (v) from Venta v where v.documentType = :documentType ")
+    Long countByDocumentType(@Param("documentType") String documentType);
 }
