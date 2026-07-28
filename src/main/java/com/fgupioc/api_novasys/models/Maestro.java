@@ -27,6 +27,7 @@ public class Maestro {
     public final static Integer ESTADO = 1;
     public final static Integer TIPO_UNIDAD = 2;
     public final static Integer ESTADO_DE_COMPRA = 3;
+    public final static Integer ESTADO_DE_VENTA = 4;
 
     @EmbeddedId
     private MaestroId id;

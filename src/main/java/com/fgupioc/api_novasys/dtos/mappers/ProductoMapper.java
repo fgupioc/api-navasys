@@ -20,6 +20,7 @@ public class ProductoMapper {
             return null;
         }
         return new ProductoRespDTO(
+                producto.getId(),
                 producto.getUuid(),
                 producto.getCode(),
                 producto.getName(),

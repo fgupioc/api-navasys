@@ -52,4 +52,13 @@ public class MaestroService implements IMaestroService {
                 .map(Maestro::toRespDTO)
                 .toList();
     }
+
+    @Override
+    public List<MaestroRespDTO> listarEstadosDeVenta() throws RuntimeException {
+        return maestroRepository.findByIdTablaId(ESTADO_DE_VENTA)
+                .stream()
+                .filter(maestro -> !maestro.getId().getCodigo().equals("-"))
+                .map(Maestro::toRespDTO)
+                .toList();
+    }
 }

@@ -10,4 +10,7 @@ public interface IMaestroService {
     List<MaestroRespDTO> listarEstados() throws RuntimeException;
 
     List<MaestroRespDTO> listarEstadosDeCompra() throws RuntimeException;
+
+    List<MaestroRespDTO> listarEstadosDeVenta() throws RuntimeException;
+
 }

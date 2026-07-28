@@ -110,12 +110,8 @@ public class CompraService implements ICompraService {
     @Transactional
     public CompraRespDTO actualizarCompra(UUID uuid, CompraReqDTO compraRespDTO) throws RuntimeException {
         try {
-
             Compra compraDB = compraRepository.findByUuid(uuid)
                     .orElseThrow(() -> new RuntimeException("Compra no encontrada"));
-
-            Long count = compraRepository.count();
-            String code = "COM" + String.format("%06d", count + 1);
 
             Proveedor proveedor = proveedorRepository.findById(compraRespDTO.supplierId())
                     .orElseThrow(() -> new RuntimeException("Proveedor no encontrado"));
