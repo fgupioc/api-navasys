@@ -45,6 +45,7 @@ public interface VentaRepository extends JpaRepository<Venta, Long> {
                mp.nombre as paymentMethod,
                mp.valor_string as paymentMethodStyle,
                v.total,
+              v.cod_status as codStatus,
                ms.nombre as status,
                ms.valor_string as statusStyle,
                v.cash_register as cashRegister
@@ -56,6 +57,7 @@ public interface VentaRepository extends JpaRepository<Venta, Long> {
               and (:hasta is null or v.created_at <= :hasta)
               and (:customerId is null or v.customer_id = :customerId)
               and (:codStatus is null or v.cod_status = :codStatus)
+            and v.deleted_at is null
             order by v.created_at desc
             """, nativeQuery = true)
     List<VentaListado> filtrarVentas(

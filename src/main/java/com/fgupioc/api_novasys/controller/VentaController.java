@@ -28,6 +28,11 @@ public class VentaController {
         return ResponseEntity.ok(ApiResponse.success(ventaService.filtrarVentas(desde, hasta, customerId, codStatus)));
     }
 
+    @GetMapping("/buscar/{uuid}")
+    public ResponseEntity<?> obtenerVentaPorUuid(@PathVariable UUID uuid) {
+        return ResponseEntity.ok(ApiResponse.success(ventaService.obtenerVentaPorUuid(uuid)));
+    }
+
     @PostMapping("/registrar")
     public ResponseEntity<?> registrarVenta(@RequestBody VentaReqDTO ventaReqDTO) {
         return ResponseEntity.ok(ApiResponse.success(ventaService.registrar(ventaReqDTO)));
@@ -38,4 +43,15 @@ public class VentaController {
         return ResponseEntity.ok(ApiResponse.success(ventaService.actualizar(uuid, ventaReqDTO)));
     }
 
+    @PutMapping("/cancelar/{uuid}")
+    public ResponseEntity<?> cancelarVenta(@PathVariable UUID uuid) {
+        ventaService.cancelar(uuid);
+        return ResponseEntity.ok(ApiResponse.success("Venta cancelada exitosamente.", null));
+    }
+    @DeleteMapping("/{uuid}")
+    public ResponseEntity<?> eliminarVenta(@PathVariable UUID uuid) {
+        ventaService.eliminar(uuid);
+        return ResponseEntity.ok(ApiResponse.success("Venta eliminada exitosamente.", null));
+    }
 }
+

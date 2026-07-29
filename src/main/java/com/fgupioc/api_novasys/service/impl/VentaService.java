@@ -1,6 +1,6 @@
 package com.fgupioc.api_novasys.service.impl;
 
-import com.fgupioc.api_novasys.dtos.VentaReqDTO;
+import com.fgupioc.api_novasys.dtos.*;
 import com.fgupioc.api_novasys.helpers.ResourceNotFoundException;
 import com.fgupioc.api_novasys.models.*;
 import com.fgupioc.api_novasys.models.interfaces.VentaListado;
@@ -8,6 +8,7 @@ import com.fgupioc.api_novasys.repository.*;
 import com.fgupioc.api_novasys.service.IVentaService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,6 +17,7 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * @author fgupioc - FRANZ
@@ -33,6 +35,7 @@ public class VentaService implements IVentaService {
     private final VentaRepository ventaRepository;
     private final VentaDetalleRepository ventaDetalleRepository;
     private final VentaPagoRepository ventaPagoRepository;
+    private final ModelMapper modelMapper;
 
     @Override
     public List<VentaListado> filtrarVentas(LocalDate desde, LocalDate hasta, Long customerId, String codStatus) throws RuntimeException {
@@ -154,6 +157,63 @@ public class VentaService implements IVentaService {
             return savedVenta.getUuid();
         } catch (Exception e) {
             log.error("Error al actualizar la venta: {}", e.getMessage());
+            throw e;
+        }
+    }
+
+    @Override
+    public VentaRespDTO obtenerVentaPorUuid(UUID uuid) throws RuntimeException {
+        try {
+            Venta ventaDB = ventaDetalleRepository.findByUuid(uuid)
+                    .orElseThrow(() -> new ResourceNotFoundException("Venta no encontrada"));
+            VentaRespDTO ventaRespDTO = modelMapper.map(ventaDB, VentaRespDTO.class);
+
+            List<VentaDetalle> detalles = ventaDetalleRepository.findByVenta(ventaDB);
+
+            ventaRespDTO.setProductos(detalles.stream()
+                    .map(detalle -> {
+                        var prod = modelMapper.map(detalle, VentaDetalleRespDTO.class);
+                        prod.setProductoId(detalle.getProducto().getId());
+                        return prod;
+                    })
+                    .collect(Collectors.toList()));
+
+            ventaDB.getPayments().forEach(pago -> {
+                ventaRespDTO.getPagos().add(modelMapper.map(pago, VentaPagoRespDTO.class));
+            });
+            if (ventaDB.getCustomer() != null) {
+                ventaRespDTO.setCustomer(modelMapper.map(ventaDB.getCustomer(), ClienteRespDTO.class));
+            }
+
+            return ventaRespDTO;
+        } catch (RuntimeException e) {
+            throw e;
+        }
+    }
+
+    @Override
+    public void cancelar(UUID uuid) throws RuntimeException {
+        try {
+            Venta venta = ventaRepository.findByUuid(uuid)
+                    .orElseThrow(() -> new ResourceNotFoundException("Venta no encontrada con UUID: " + uuid));
+            venta.setCodStatus(Venta.STATUS_ANULADA);
+            ventaRepository.save(venta);
+            log.info("Venta cancelada con éxito: {}", venta.getId());
+        } catch (RuntimeException e) {
+            log.error("Error al cancelar la venta: {}", e.getMessage());
+            throw e;
+        }
+    }
+
+    @Override
+    public void eliminar(UUID uuid) throws RuntimeException {
+        try {
+            Venta venta = ventaRepository.findByUuid(uuid)
+                    .orElseThrow(() -> new ResourceNotFoundException("Venta no encontrada con UUID: " + uuid));
+            ventaRepository.delete(venta);
+            log.info("Venta eliminada con éxito: {}", venta.getId());
+        } catch (RuntimeException e) {
+            log.error("Error al eliminar la venta: {}", e.getMessage());
             throw e;
         }
     }

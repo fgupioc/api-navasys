@@ -1,6 +1,7 @@
 package com.fgupioc.api_novasys.service;
 
 import com.fgupioc.api_novasys.dtos.VentaReqDTO;
+import com.fgupioc.api_novasys.dtos.VentaRespDTO;
 import com.fgupioc.api_novasys.models.interfaces.VentaListado;
 
 import java.time.LocalDate;
@@ -19,4 +20,10 @@ public interface IVentaService {
     UUID actualizar(UUID uuid, VentaReqDTO ventaReqDTO) throws RuntimeException;
 
     List<VentaListado> filtrarVentas(LocalDate desde, LocalDate hasta, Long customerId, String codStatus) throws RuntimeException;
+
+    VentaRespDTO obtenerVentaPorUuid(UUID uuid) throws RuntimeException;
+
+    void cancelar(UUID uuid) throws RuntimeException;
+
+    void eliminar(UUID uuid) throws RuntimeException;
 }

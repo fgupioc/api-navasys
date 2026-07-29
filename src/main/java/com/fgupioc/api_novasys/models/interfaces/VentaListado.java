@@ -12,6 +12,7 @@ public interface VentaListado {
     String getPaymentMethod();
     String getPaymentMethodStyle();
     Double getTotal();
+    String getCodStatus();
     String getStatus();
     String getStatusStyle();
     String getCashRegister();
