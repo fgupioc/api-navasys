@@ -48,6 +48,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/maestro/**").permitAll()
                         .requestMatchers("/api/compras/**").permitAll()
                         .requestMatchers("/api/ventas/**").permitAll()
+                        .requestMatchers("/api/tickets/**").permitAll()
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/ws-viatra/**").permitAll()
                         .anyRequest().authenticated()

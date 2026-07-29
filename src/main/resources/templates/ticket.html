@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <style th:text="'@page { size: 80mm ' + ${alturaMm} + 'mm; margin: 0; }'"></style>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: "TicketMono";
+            font-size: 8pt;
+            line-height: 1.35;
+            color: #000;
+            padding: 4mm 4mm 5mm 4mm;
+            text-transform: uppercase;
+        }
+
+        .marca {
+            text-align: center;
+            font-size: 17pt;
+            font-weight: bold;
+            letter-spacing: 0.6mm;
+        }
+
+        .sub {
+            text-align: center;
+            font-size: 8.5pt;
+            font-weight: bold;
+            letter-spacing: 0.8mm;
+            margin-top: 2mm;
+        }
+
+        .datos-negocio {
+            text-align: center;
+            font-size: 7pt;
+            margin-top: 2mm;
+            line-height: 1.3;
+        }
+
+        .meta {
+            margin-top: 5mm;
+            font-size: 7.5pt;
+        }
+
+        .rule {
+            border-top: 0.6pt solid #000;
+            height: 0;
+            font-size: 0;
+            margin: 2mm 0;
+        }
+
+        .rule2 {
+            border-top: 0.6pt solid #000;
+            height: 0;
+            font-size: 0;
+            margin: 1.5mm 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+        td, th {
+            vertical-align: top;
+            padding: 0.7mm 0;
+            font-weight: normal;
+            text-align: left;
+        }
+
+        .c-qty {
+            width: 13%;
+        }
+
+        .c-item {
+            width: 60%;
+            padding-right: 1.5mm;
+            word-wrap: break-word;
+        }
+
+        .c-amt {
+            width: 27%;
+            text-align: right;
+        }
+
+        .tot-lbl {
+            width: 60%;
+        }
+
+        .tot-val {
+            width: 40%;
+            text-align: right;
+        }
+
+        .bold {
+            font-weight: bold;
+        }
+
+        .grande {
+            font-size: 10pt;
+        }
+
+        .pie {
+            margin-top: 3mm;
+            font-size: 7.5pt;
+        }
+
+        .gracias {
+            text-align: center;
+            margin-top: 4mm;
+            font-size: 8pt;
+            letter-spacing: 0.3mm;
+        }
+
+        .barcode {
+            text-align: center;
+            margin-top: 3mm;
+        }
+
+        .barcode img {
+            width: 58mm;
+            height: 12mm;
+        }
+
+        .url {
+            text-align: center;
+            font-size: 7pt;
+            margin-top: 1.5mm;
+            text-transform: lowercase;
+        }
+    </style>
+</head>
+<body>
+
+<div class="marca" th:text="${t.negocio}">MINIMARKET</div>
+<div class="sub" th:text="${t.subtitulo}">BOLETA DE VENTA</div>
+<div class="datos-negocio">
+    RUC 20601234567<br/>
+    JR. AMAZONAS 123 - CHACHAPOYAS<br/>
+    TEL. 941 000 000
+</div>
+
+<div class="meta">
+    <span th:text="${t.serieCorrelativo}">B001-0000234</span><br/>
+    <span th:text="${#temporals.format(t.fecha, 'EEEE, dd ''DE'' MMMM ''DE'' yyyy - HH:mm')}"></span><br/>
+    CLIENTE: <span th:text="${t.cliente}">VARIOS</span><br/>
+    DOC: <span th:text="${t.documento}">-</span>
+</div>
+
+<div class="rule"></div>
+
+<table>
+    <tr>
+        <th class="c-qty">CANT</th>
+        <th class="c-item">ITEM</th>
+        <th class="c-amt">IMPORTE</th>
+    </tr>
+</table>
+
+<div class="rule2"></div>
+
+<table>
+    <tr th:each="l : ${t.lineas}">
+        <td class="c-qty" th:text="${#numbers.formatDecimal(l.cantidad,1,0)}">01</td>
+        <td class="c-item">
+            <span th:text="${l.descripcion}">PRODUCTO</span><br/>
+            <span th:text="'  ' + ${#numbers.formatDecimal(l.precioUnit,1,'POINT',2,'POINT')} + ' C/U'"></span>
+        </td>
+        <td class="c-amt" th:text="${#numbers.formatDecimal(l.importe,1,'COMMA',2,'POINT')}">0.00</td>
+    </tr>
+</table>
+
+<div class="rule"></div>
+
+<table>
+    <tr>
+        <td class="tot-lbl">ITEMS:</td>
+        <td class="tot-val" th:text="${t.itemCount()}">0</td>
+    </tr>
+    <tr>
+        <td class="tot-lbl">OP. GRAVADA:</td>
+        <td class="tot-val" th:text="'S/ ' + ${#numbers.formatDecimal(t.subtotal,1,'COMMA',2,'POINT')}"></td>
+    </tr>
+    <tr>
+        <td class="tot-lbl">IGV (18%):</td>
+        <td class="tot-val" th:text="'S/ ' + ${#numbers.formatDecimal(t.igv,1,'COMMA',2,'POINT')}"></td>
+    </tr>
+    <tr class="bold grande">
+        <td class="tot-lbl">TOTAL:</td>
+        <td class="tot-val" th:text="'S/ ' + ${#numbers.formatDecimal(t.total,1,'COMMA',2,'POINT')}"></td>
+    </tr>
+</table>
+
+<div class="rule2"></div>
+
+<div class="pie">
+    PAGO: <span th:text="${t.metodoPago}">EFECTIVO</span><br/>
+    RECIBIDO: S/ <span th:text="${#numbers.formatDecimal(t.recibido,1,'COMMA',2,'POINT')}"></span><br/>
+    VUELTO: S/ <span th:text="${#numbers.formatDecimal(t.vuelto,1,'COMMA',2,'POINT')}"></span><br/>
+    CAJERO: <span th:text="${t.cajero}"></span>
+</div>
+
+<div class="gracias">¡GRACIAS POR SU COMPRA!</div>
+
+<div class="barcode">
+    <img th:src="'data:image/png;base64,' + ${barcode}" alt="barcode"/>
+</div>
+<div class="url">novasys.pe</div>
+
+</body>
+</html>
