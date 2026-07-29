@@ -2,9 +2,14 @@ package com.fgupioc.api_novasys.service;
 
 import com.fgupioc.api_novasys.dtos.TicketDTO;
 import com.fgupioc.api_novasys.helpers.BarcodeUtil;
+import com.openhtmltopdf.extend.FSSupplier;
 import com.openhtmltopdf.outputdevice.helper.BaseRendererBuilder;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.jsoup.Jsoup;
 import org.jsoup.helper.W3CDom;
 import org.jsoup.nodes.Document;
@@ -12,12 +17,15 @@ import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
+import java.awt.geom.Rectangle2D;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Locale;
+
 
 /**
  * @author fgupioc - FRANZ
@@ -25,24 +33,34 @@ import java.util.Locale;
  * @project api-novasys
  * @since 29/07/2026
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class TicketPdfService {
-
-    private static final float ANCHO_MM       = 80f;
-    private static final float ALTO_BASE_MM   = 95f;  // cabecera + totales + pie + barcode
-    private static final float ALTO_LINEA_MM  = 7.5f; // fila de 2 renglones
-    private static final float ALTO_WRAP_MM   = 3.2f; // renglón extra si la descripción es larga
-    private static final int   CHARS_POR_LINEA = 26;  // aprox. para 60% de 72mm a 8pt
+    private static final float MM_A_PT = 72f / 25.4f;
+    private static final float ANCHO_MM = 80f;
+    private static final float ALTO_TMP = 1200f;  // lienzo: garantiza 1 sola página
+    private static final float COLA_MM = 15f;     // papel sobrante antes del corte
 
     private final TemplateEngine templateEngine;
 
+    /**
+     * Punto de entrada: renderiza en un lienzo largo y luego recorta al contenido.
+     */
     public byte[] generar(TicketDTO t) {
+        byte[] crudo = render(t, ALTO_TMP);
+        return recortar(crudo);
+    }
+
+    /**
+     * Renderiza el HTML a PDF con una altura de página dada (en mm).
+     */
+    private byte[] render(TicketDTO t, float alturaMm) {
         Context ctx = new Context(Locale.of("es", "PE"));
         ctx.setVariable("t", t);
         ctx.setVariable("barcode",
                 BarcodeUtil.code128Base64(t.serieCorrelativo(), 600, 100));
-        ctx.setVariable("alturaMm", calcularAlturaMm(t));
+        ctx.setVariable("alturaMm", fmt(alturaMm));
 
         String html = templateEngine.process("ticket", ctx);
 
@@ -56,11 +74,9 @@ public class TicketPdfService {
             PdfRendererBuilder builder = new PdfRendererBuilder();
             builder.useFastMode();
             builder.usePdfUaAccessbility(false);
-            builder.useFont(
-                    () -> getClass().getResourceAsStream("/fonts/JetBrainsMono-Regular.ttf"),
+            builder.useFont(fuente("/fonts/JetBrainsMono-Regular.ttf"),
                     "TicketMono", 400, BaseRendererBuilder.FontStyle.NORMAL, true);
-            builder.useFont(
-                    () -> getClass().getResourceAsStream("/fonts/JetBrainsMono-Bold.ttf"),
+            builder.useFont(fuente("/fonts/JetBrainsMono-Bold.ttf"),
                     "TicketMono", 700, BaseRendererBuilder.FontStyle.NORMAL, true);
             builder.withW3cDocument(new W3CDom().fromJsoup(doc), "/");
             builder.toStream(out);
@@ -71,14 +87,50 @@ public class TicketPdfService {
         }
     }
 
-    private String calcularAlturaMm(TicketDTO t) {
-        float alto = ALTO_BASE_MM;
-        for (var l : t.lineas()) {
-            alto += ALTO_LINEA_MM;
-            int extras = Math.max(0, (l.descripcion().length() - 1) / CHARS_POR_LINEA);
-            alto += extras * ALTO_WRAP_MM;
+    /**
+     * Ajusta el MediaBox/CropBox al alto real del contenido.
+     */
+    private byte[] recortar(byte[] pdf) {
+        try (PDDocument doc = PDDocument.load(pdf);   // PDFBox 3 -> Loader.loadPDF(pdf)
+             var out = new ByteArrayOutputStream()) {
+            log.info("alto: {} mm", doc.getPage(0).getMediaBox().getHeight() / (72f/25.4f));
+            log.info("PDF crudo: {} pág, alto {} pt",
+                    doc.getNumberOfPages(), doc.getPage(0).getMediaBox().getHeight());
+
+            PDPage page = doc.getPage(0);
+            Rectangle2D b = new ContentBoundsFinder(page).find();
+
+            float top = page.getMediaBox().getUpperRightY();
+            float minY = (b == null) ? top - 200f : (float) b.getMinY();
+            float lower = Math.max(0f, minY - COLA_MM * MM_A_PT);
+
+            PDRectangle nueva = new PDRectangle(0, lower, ANCHO_MM * MM_A_PT, top - lower);
+            page.setMediaBox(nueva);
+            page.setCropBox(nueva);
+
+            log.info("Ticket recortado a {} mm", nueva.getHeight() / MM_A_PT);
+
+            doc.save(out);
+            return out.toByteArray();
+        } catch (IOException e) {
+            throw new IllegalStateException("Error recortando el ticket", e);
         }
-        return new DecimalFormat("0.##", DecimalFormatSymbols.getInstance(Locale.US))
-                .format(Math.max(alto, 120f));
+    }
+
+    /**
+     * Falla ruidosamente si el TTF no está en el classpath.
+     */
+    private FSSupplier<InputStream> fuente(String ruta) {
+        return () -> {
+            InputStream is = getClass().getResourceAsStream(ruta);
+            if (is == null) {
+                throw new IllegalStateException("Fuente no encontrada en classpath: " + ruta);
+            }
+            return is;
+        };
+    }
+
+    private String fmt(float v) {
+        return new DecimalFormat("0.##", DecimalFormatSymbols.getInstance(Locale.US)).format(v);
     }
 }
