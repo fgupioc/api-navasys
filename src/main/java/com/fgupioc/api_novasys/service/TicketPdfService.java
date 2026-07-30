@@ -38,7 +38,8 @@ import java.util.Locale;
 @RequiredArgsConstructor
 public class TicketPdfService {
     private static final float MM_A_PT = 72f / 25.4f;
-    private static final float ANCHO_MM = 80f;
+    private static final float ANCHO_MM_80 = 80f;
+    private static final float ANCHO_MM_58 = 58f;
     private static final float ALTO_TMP = 1200f;  // lienzo: garantiza 1 sola página
     private static final float COLA_MM = 15f;     // papel sobrante antes del corte
 
@@ -47,22 +48,32 @@ public class TicketPdfService {
     /**
      * Punto de entrada: renderiza en un lienzo largo y luego recorta al contenido.
      */
-    public byte[] generar(TicketDTO t) {
-        byte[] crudo = render(t, ALTO_TMP);
-        return recortar(crudo);
+    public byte[] generar58(TicketDTO t) {
+        byte[] crudo = render(t, ALTO_TMP, ANCHO_MM_58, "ticket58");
+        return recortar(crudo, ANCHO_MM_58);
+    }
+
+
+    /**
+     * Punto de entrada: renderiza en un lienzo largo y luego recorta al contenido.
+     */
+    public byte[] generar80(TicketDTO t) {
+        byte[] crudo = render(t, ALTO_TMP, ANCHO_MM_80, "ticket80");
+        return recortar(crudo, ANCHO_MM_80);
     }
 
     /**
      * Renderiza el HTML a PDF con una altura de página dada (en mm).
      */
-    private byte[] render(TicketDTO t, float alturaMm) {
+    private byte[] render(TicketDTO t, float alturaMm, float ANCHO_MM, String template) {
         Context ctx = new Context(Locale.of("es", "PE"));
+        ctx.setVariable("anchoMm", fmt(ANCHO_MM));
         ctx.setVariable("t", t);
         ctx.setVariable("barcode",
                 BarcodeUtil.code128Base64(t.serieCorrelativo(), 600, 100));
         ctx.setVariable("alturaMm", fmt(alturaMm));
 
-        String html = templateEngine.process("ticket", ctx);
+        String html = templateEngine.process(template, ctx);
 
         // openhtmltopdf exige XHTML bien formado
         Document doc = Jsoup.parse(html, "UTF-8");
@@ -90,7 +101,7 @@ public class TicketPdfService {
     /**
      * Ajusta el MediaBox/CropBox al alto real del contenido.
      */
-    private byte[] recortar(byte[] pdf) {
+    private byte[] recortar(byte[] pdf, float ANCHO_MM) {
         try (PDDocument doc = PDDocument.load(pdf);   // PDFBox 3 -> Loader.loadPDF(pdf)
              var out = new ByteArrayOutputStream()) {
             log.info("alto: {} mm", doc.getPage(0).getMediaBox().getHeight() / (72f/25.4f));

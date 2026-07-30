@@ -34,7 +34,7 @@ public class TicketController {
     @GetMapping(value = "/{uuid}/ticket", produces = MediaType.APPLICATION_PDF_VALUE)
     public ResponseEntity<byte[]> ticket(@PathVariable UUID uuid) {
         TicketDTO dto = ventaService.getItemParTicket(uuid);
-        byte[] pdf = ticketPdfService.generar(dto);
+        byte[] pdf = ticketPdfService.generar58(dto);
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION,
