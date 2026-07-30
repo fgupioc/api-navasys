@@ -172,8 +172,10 @@ public class CompraService implements ICompraService {
                     movement.setTipoMovimiento(InventarioMovimientoTipo.PURCHASE_IN);
                     movement.setTipoReferencia(InventarioReferenciaTipo.PURCHASE);
                     movement.setReferenceId(purchaseDetail.getId());
-                    movement.setQuantity(detail.quantity());
+                    movement.setInitialQuantity(detail.quantity());
+                    movement.setCurrentQuantity(detail.quantity());
                     movement.setUnitCost(detail.unitCost());
+                    movement.setSalePrice(detail.salePrice());
                     movement.setDiscount(detail.discount());
 
                     inventarioMovimientoRepository.save(movement);

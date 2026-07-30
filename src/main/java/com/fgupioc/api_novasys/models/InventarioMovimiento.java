@@ -59,12 +59,14 @@ public class InventarioMovimiento {
      * Positivo = Entrada
      * Negativo = Salida
      */
-    private Double quantity;
+    private Double initialQuantity;
+    private Double currentQuantity;
 
     /**
      * Costo unitario del movimiento
      */
     private BigDecimal unitCost;
+    private BigDecimal salePrice;
 
     private BigDecimal discount;
 

@@ -26,7 +26,7 @@ public record CompraProducto(
 ) {
     public static CompraProducto toDetalleDTO(CompraDetalle compraDetalle) {
         return new CompraProducto(
-                compraDetalle.getId(),
+                compraDetalle.getProducto().getId(),
                 compraDetalle.getProducto().getBarcode(),
                 compraDetalle.getProducto().getCategoria().getName(),
                 compraDetalle.getProducto().getCode(),
