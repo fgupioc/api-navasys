@@ -14,6 +14,7 @@ public record TicketDTO(
         String negocio,          // "MINIMARKET NOVASYS"
         String subtitulo,        // "BOLETA DE VENTA ELECTRÓNICA"
         String serieCorrelativo,  // "B001-0000234"
+        String codigo,
         String cliente,
         String documento,        // DNI/RUC
         LocalDateTime fecha,

@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -35,6 +36,7 @@ public class VentaService implements IVentaService {
     private final VentaRepository ventaRepository;
     private final VentaDetalleRepository ventaDetalleRepository;
     private final VentaPagoRepository ventaPagoRepository;
+    private final MaestroRepository maestroRepository;
     private final ModelMapper modelMapper;
 
     @Override
@@ -216,5 +218,60 @@ public class VentaService implements IVentaService {
             log.error("Error al eliminar la venta: {}", e.getMessage());
             throw e;
         }
+    }
+
+    @Override
+    public TicketDTO getItemParTicket(UUID uuid) throws RuntimeException {
+        Venta venta = ventaRepository.findByUuid(uuid)
+                .orElseThrow(() -> new ResourceNotFoundException("Venta no encontrada con UUID: " + uuid));
+        List<VentaDetalle> detalles = ventaDetalleRepository.findByVenta(venta);
+
+        List<TicketDTO.Linea> lineas = new java.util.ArrayList<>();
+
+        for (int i = 0; i < detalles.size(); i++) {
+            VentaDetalle detalle = detalles.get(i);
+            lineas.add(new TicketDTO.Linea(
+                    i + 1,
+                    detalle.getProductName(),
+                    bd(detalle.getQuantity().toString()),
+                    detalle.getUnitPrice(),
+                    bd((detalle.getQuantity() * detalle.getUnitPrice().doubleValue()) + "")
+            ));
+        }
+
+        Cliente cliente = venta.getCustomer();
+        String clienteNombre = "";
+        String clienteDocumento = "";
+        if (venta.getCustomer() != null) {
+            clienteNombre = cliente.getFirstName() + " " + cliente.getLastName();
+            clienteDocumento = cliente.getDocumentType() + " " + cliente.getDocumentNumber();
+            if (cliente.getId() == 1l) {
+                clienteDocumento = "";
+            }
+        }
+
+        String metodoPago = maestroRepository
+                .findByTablaIdAndCodigo(5, venta.getPaymentMethod())
+                .map(Maestro::getNombre)
+                .orElse("");
+
+        return new TicketDTO(
+                "MINIMARKET NOVASYS",
+                "TICKET DE VENTA",
+                venta.getDocumentSeries() + "-" + venta.getDocumentNumber(),
+                venta.getCode(),
+                clienteNombre,
+                clienteDocumento,
+                venta.getCreatedAt(),
+                lineas,
+                venta.getSubtotal(), venta.getTax(), venta.getTotal(),
+                venta.getTotal(), bd("0.00"),
+                metodoPago,
+                venta.getCashRegister()
+        );
+    }
+
+    private static BigDecimal bd(String v) {
+        return new BigDecimal(v);
     }
 }

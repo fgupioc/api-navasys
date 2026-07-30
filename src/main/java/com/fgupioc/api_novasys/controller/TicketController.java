@@ -33,7 +33,7 @@ public class TicketController {
 
     @GetMapping(value = "/{uuid}/ticket", produces = MediaType.APPLICATION_PDF_VALUE)
     public ResponseEntity<byte[]> ticket(@PathVariable UUID uuid) {
-        TicketDTO dto = demo();
+        TicketDTO dto = ventaService.getItemParTicket(uuid);
         byte[] pdf = ticketPdfService.generar(dto);
 
         return ResponseEntity.ok()
@@ -41,92 +41,5 @@ public class TicketController {
                         "inline; filename=\"" + dto.serieCorrelativo() + ".pdf\"")
                 .contentType(MediaType.APPLICATION_PDF)
                 .body(pdf);
-    }
-
-
-    public static TicketDTO demo() {
-        List<TicketDTO.Linea> lineas = List.of(
-                new TicketDTO.Linea(1, "ARROZ COSTEÑO EXTRA 5KG",
-                        bd("2"), bd("24.50"), bd("49.00")),
-                new TicketDTO.Linea(2, "ACEITE PRIMOR 1L",
-                        bd("1"), bd("9.90"), bd("9.90")),
-                new TicketDTO.Linea(3, "LECHE GLORIA EVAPORADA ENTERA 400G",
-                        bd("6"), bd("4.20"), bd("25.20")),
-                new TicketDTO.Linea(4, "PAN FRANCES",
-                        bd("10"), bd("0.30"), bd("3.00")),
-                new TicketDTO.Linea(5, "DETERGENTE BOLIVAR FLORAL 780G",
-                        bd("1"), bd("12.50"), bd("12.50")),
-                new TicketDTO.Linea(6, "GASEOSA INCA KOLA 1.5L",
-                        bd("2"), bd("7.50"), bd("15.00")),
-                new TicketDTO.Linea(1, "ARROZ COSTEÑO EXTRA 5KG",
-                        bd("2"), bd("24.50"), bd("49.00")),
-                new TicketDTO.Linea(2, "ACEITE PRIMOR 1L",
-                        bd("1"), bd("9.90"), bd("9.90")),
-                new TicketDTO.Linea(3, "LECHE GLORIA EVAPORADA ENTERA 400G",
-                        bd("6"), bd("4.20"), bd("25.20")),
-                new TicketDTO.Linea(4, "PAN FRANCES",
-                        bd("10"), bd("0.30"), bd("3.00")),
-                new TicketDTO.Linea(5, "DETERGENTE BOLIVAR FLORAL 780G",
-                        bd("1"), bd("12.50"), bd("12.50")),
-                new TicketDTO.Linea(6, "GASEOSA INCA KOLA 1.5L",
-                        bd("2"), bd("7.50"), bd("15.00")),
-                new TicketDTO.Linea(1, "ARROZ COSTEÑO EXTRA 5KG",
-                        bd("2"), bd("24.50"), bd("49.00")),
-                new TicketDTO.Linea(2, "ACEITE PRIMOR 1L",
-                        bd("1"), bd("9.90"), bd("9.90")),
-                new TicketDTO.Linea(3, "LECHE GLORIA EVAPORADA ENTERA 400G",
-                        bd("6"), bd("4.20"), bd("25.20")),
-                new TicketDTO.Linea(4, "PAN FRANCES",
-                        bd("10"), bd("0.30"), bd("3.00")),
-                new TicketDTO.Linea(5, "DETERGENTE BOLIVAR FLORAL 780G",
-                        bd("1"), bd("12.50"), bd("12.50")),
-                new TicketDTO.Linea(6, "GASEOSA INCA KOLA 1.5L",
-                        bd("2"), bd("7.50"), bd("15.00"))
-        );
-
-        return new TicketDTO(
-                "MINIMARKET NOVASYS",
-                "BOLETA DE VENTA ELECTRONICA",
-                "B001-0000234",
-                "MICHELLE LIU",
-                "DNI 71234567",
-                LocalDateTime.of(2026, 7, 29, 18, 42, 15),
-                lineas,
-                bd("97.12"),    // op. gravada
-                bd("17.48"),    // IGV 18%
-                bd("114.60"),   // total
-                bd("150.00"),   // recibido
-                bd("35.40"),    // vuelto
-                "EFECTIVO",
-                "F. ROJAS"
-        );
-    }
-
-    /** Venta corta, para verificar la altura mínima del @page. */
-    public static TicketDTO demoCorto() {
-        List<TicketDTO.Linea> lineas = List.of(
-                new TicketDTO.Linea(1, "AGUA SAN LUIS 625ML",
-                        bd("1"), bd("1.50"), bd("1.50")),
-                new TicketDTO.Linea(2, "GALLETA SODA FIELD",
-                        bd("2"), bd("1.20"), bd("2.40"))
-        );
-
-        return new TicketDTO(
-                "MINIMARKET NOVASYS",
-                "TICKET DE VENTA",
-                "T001-0000015",
-                "VARIOS",
-                "-",
-                LocalDateTime.now(),
-                lineas,
-                bd("3.31"), bd("0.59"), bd("3.90"),
-                bd("5.00"), bd("1.10"),
-                "YAPE",
-                "F. ROJAS"
-        );
-    }
-
-    private static BigDecimal bd(String v) {
-        return new BigDecimal(v);
     }
 }

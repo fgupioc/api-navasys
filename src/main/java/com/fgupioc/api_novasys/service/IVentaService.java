@@ -1,5 +1,6 @@
 package com.fgupioc.api_novasys.service;
 
+import com.fgupioc.api_novasys.dtos.TicketDTO;
 import com.fgupioc.api_novasys.dtos.VentaReqDTO;
 import com.fgupioc.api_novasys.dtos.VentaRespDTO;
 import com.fgupioc.api_novasys.models.interfaces.VentaListado;
@@ -26,4 +27,6 @@ public interface IVentaService {
     void cancelar(UUID uuid) throws RuntimeException;
 
     void eliminar(UUID uuid) throws RuntimeException;
+
+    TicketDTO getItemParTicket(UUID uuid) throws RuntimeException;
 }
