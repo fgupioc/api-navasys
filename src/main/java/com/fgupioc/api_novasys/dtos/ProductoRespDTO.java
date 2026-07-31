@@ -15,6 +15,7 @@ public record ProductoRespDTO(
         UnidadRespDTO unidad,
         ProveedorRespDTO proveedor,
         List<ProductoImagenRespDTO> imagenes,
-        String codStatus
+        String codStatus,
+        List<ProductoPrecioAlmacenResp> precios
 ) {
 }

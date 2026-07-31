@@ -1,10 +1,14 @@
 package com.fgupioc.api_novasys.service.impl;
 
+import com.fgupioc.api_novasys.dtos.ProductoPrecioAlmacenResp;
+import com.fgupioc.api_novasys.dtos.ProductoPrecioResp;
 import com.fgupioc.api_novasys.dtos.ProductoReqDTO;
 import com.fgupioc.api_novasys.dtos.ProductoRespDTO;
 import com.fgupioc.api_novasys.dtos.mappers.ProductoMapper;
 import com.fgupioc.api_novasys.helpers.ResourceNotFoundException;
 import com.fgupioc.api_novasys.models.*;
+import com.fgupioc.api_novasys.models.enums.TipoPreciosTipo;
+import com.fgupioc.api_novasys.models.interfaces.ProductoAlmacen;
 import com.fgupioc.api_novasys.models.interfaces.ProductoAutocompledado;
 import com.fgupioc.api_novasys.repository.*;
 import com.fgupioc.api_novasys.service.IImagenStorageService;
@@ -16,9 +20,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * @author fgupioc - FRANZ
@@ -31,19 +37,69 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Slf4j
 public class ProductoService implements IProductoService {
+    private final ProductoMapper productoMapper;
     private final ProductoRepository productoRepository;
     private final CategoriaRepository categoriaRepository;
     private final MarcaRepository marcaRepository;
     private final UnidadRepository unidadRepository;
     private final ProveedorRepository proveedorRepository;
     private final IImagenStorageService imagenStorageService;
-    private final ProductoMapper productoMapper;
+    private final ProductoPrecioRepository productoPrecioRepository;
+    private final AlmacenRepository almacenRepository;
+    private final InventarioMovimientoRepository inventarioMovimientoRepository;
+    private final ProductoImagenRepository productoImagenRepository;
 
     @Override
-    public ProductoRespDTO buscarPorUuid(UUID uuid) throws RuntimeException {
-        return productoRepository.findByUuid(uuid)
-                .map(productoMapper::toRespDTO)
+    @Transactional(readOnly = true)
+    public ProductoRespDTO buscarPorUuid(UUID uuid) {
+        Producto producto = productoRepository.findByUuid(uuid)
                 .orElseThrow(() -> new ResourceNotFoundException("Producto no encontrado: " + uuid));
+
+        Long empresaId = 1L; // TODO: sacarlo del contexto de seguridad
+
+        List<ProductoAlmacen> almacenes = inventarioMovimientoRepository
+                .listarProductosAlmacenByAlmacenId(empresaId, producto.getId());
+
+        List<ProductoPrecio> todos = productoPrecioRepository
+                .findByProductoId(empresaId, producto.getId());
+
+        Map<TipoPreciosTipo, ProductoPrecio> generales = todos.stream()
+                .filter(p -> p.getAlmacen() == null)
+                .collect(Collectors.toMap(ProductoPrecio::getPriceType,
+                        Function.identity(),
+                        (a, b) -> a));
+
+        Map<Long, List<ProductoPrecio>> overrides = todos.stream()
+                .filter(p -> p.getAlmacen() != null)
+                .collect(Collectors.groupingBy(p -> p.getAlmacen().getId()));
+
+        List<ProductoPrecioAlmacenResp> precios = almacenes.stream()
+                .map(a -> ProductoPrecioAlmacenResp.builder()
+                        .warehouseId(a.getWarehouseId())
+                        .warehouseName(a.getWarehouseName())
+                        .codStatus(a.getCodStatus())
+                        .stock(a.getStock())
+                        .precios(resolver(generales,
+                                overrides.getOrDefault(a.getWarehouseId(), List.of())))
+                        .build())
+                .toList();
+
+        return productoMapper.toRespDTO(producto, precios);
+    }
+
+    private List<ProductoPrecioResp> resolver(Map<TipoPreciosTipo, ProductoPrecio> generales,
+                                              List<ProductoPrecio> overrides) {
+        Map<TipoPreciosTipo, ProductoPrecio> resuelto = new EnumMap<>(TipoPreciosTipo.class);
+        resuelto.putAll(generales);
+        overrides.forEach(p -> resuelto.put(p.getPriceType(), p));
+
+        return resuelto.values().stream()
+                .map(p -> ProductoPrecioResp.builder()
+                        .id(p.getId())
+                        .priceType(p.getPriceType())
+                        .salePrice(p.getSalePrice())
+                        .build())
+                .toList();
     }
 
     @Override
@@ -71,11 +127,13 @@ public class ProductoService implements IProductoService {
             Unidad unidad = unidadRepository.findById(request.unitId())
                     .orElseThrow(() -> new ResourceNotFoundException("Unidad no encontrada: " + request.unitId()));
 
+
             Proveedor proveedor = null;
             if (request.supplierId() != null) {
                 proveedor = proveedorRepository.findById(request.supplierId())
                         .orElseThrow(() -> new ResourceNotFoundException("Proveedor no encontrado: " + request.supplierId()));
             }
+
             Integer count = productoRepository.countProductos();
             String codigo = categoria.getCode() + String.format("%06d", count + 1);
             Producto producto = Producto.builder()
@@ -106,7 +164,6 @@ public class ProductoService implements IProductoService {
                 }
                 guardado.getImagenes().addAll(productoImagenes);
             }
-
             return productoRepository.save(guardado);
         } catch (RuntimeException e) {
             log.error(e.getMessage(), e);
@@ -150,6 +207,15 @@ public class ProductoService implements IProductoService {
 
         if (imagenes != null && !imagenes.isEmpty()) {
             reemplazarImagenes(producto, imagenes);
+        }
+
+        if (request.almacenes() != null && !request.almacenes().isEmpty()) {
+            for (ProductoPrecioAlmacenResp almacenResp : request.almacenes()) {
+                for (ProductoPrecioResp precio: almacenResp.getPrecios()) {
+                    productoPrecioRepository.updatePrecio(precio.getId(), precio.getSalePrice());
+                }
+                inventarioMovimientoRepository.updateStatus(almacenResp.getWarehouseId(), producto.getId(), almacenResp.getCodStatus());
+            }
         }
 
         return productoRepository.save(producto);

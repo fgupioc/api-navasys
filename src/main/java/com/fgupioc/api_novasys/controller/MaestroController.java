@@ -34,8 +34,14 @@ public class MaestroController {
     public ResponseEntity<?> listarEstadosDeCompra() {
         return ResponseEntity.ok(ApiResponse.success(maestroService.listarEstadosDeCompra()));
     }
+
     @GetMapping("/estados-de-venta")
     public ResponseEntity<?> listarEstadosDeVenta() {
         return ResponseEntity.ok(ApiResponse.success(maestroService.listarEstadosDeVenta()));
+    }
+
+    @GetMapping("/listar-almacenes")
+    public ResponseEntity<?> listarAlmacenes() {
+        return ResponseEntity.ok(ApiResponse.success(maestroService.listarAlmacenes(1l)));
     }
 }

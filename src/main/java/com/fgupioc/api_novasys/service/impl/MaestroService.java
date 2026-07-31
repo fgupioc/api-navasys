@@ -1,8 +1,12 @@
 package com.fgupioc.api_novasys.service.impl;
 
+import com.fgupioc.api_novasys.dtos.AlmacenRespDTO;
 import com.fgupioc.api_novasys.dtos.MaestroRespDTO;
 import com.fgupioc.api_novasys.models.Maestro;
+import com.fgupioc.api_novasys.models.Tienda;
+import com.fgupioc.api_novasys.repository.AlmacenRepository;
 import com.fgupioc.api_novasys.repository.MaestroRepository;
+import com.fgupioc.api_novasys.repository.TiendaRepository;
 import com.fgupioc.api_novasys.service.IMaestroService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -22,8 +26,10 @@ import static com.fgupioc.api_novasys.models.Maestro.*;
 @Service
 @RequiredArgsConstructor
 public class MaestroService implements IMaestroService {
-    private final MaestroRepository maestroRepository;
     private final ModelMapper modelMapper;
+    private final MaestroRepository maestroRepository;
+    private final TiendaRepository tiendaRepository;
+    private final AlmacenRepository almacenRepository;
 
     @Override
     public List<MaestroRespDTO> listarEstados() throws RuntimeException {
@@ -60,5 +66,11 @@ public class MaestroService implements IMaestroService {
                 .filter(maestro -> !maestro.getId().getCodigo().equals("-"))
                 .map(Maestro::toRespDTO)
                 .toList();
+    }
+
+    @Override
+    public List<AlmacenRespDTO> listarAlmacenes(long tiendaId) throws RuntimeException {
+        Tienda tienda = tiendaRepository.findById(tiendaId).orElseThrow(() -> new RuntimeException("Tienda no encontrada"));
+        return almacenRepository.findAllByTienda(tienda).stream().map(AlmacenRespDTO::fromEntity).toList();
     }
 }

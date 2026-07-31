@@ -1,5 +1,6 @@
 package com.fgupioc.api_novasys.models;
 
+import com.fgupioc.api_novasys.helpers.CONST;
 import com.fgupioc.api_novasys.models.enums.InventarioMovimientoTipo;
 import com.fgupioc.api_novasys.models.enums.InventarioReferenciaTipo;
 import jakarta.persistence.*;
@@ -70,4 +71,10 @@ public class InventarioMovimiento {
 
     private BigDecimal discount;
 
+    private String codStatus;
+
+    @PrePersist
+    public void prePersist() {
+        this.codStatus = CONST.STATUS_ACTIVE;
+    }
 }

@@ -1,5 +1,6 @@
 package com.fgupioc.api_novasys.service;
 
+import com.fgupioc.api_novasys.dtos.AlmacenRespDTO;
 import com.fgupioc.api_novasys.dtos.MaestroRespDTO;
 
 import java.util.List;
@@ -13,4 +14,5 @@ public interface IMaestroService {
 
     List<MaestroRespDTO> listarEstadosDeVenta() throws RuntimeException;
 
+    List<AlmacenRespDTO> listarAlmacenes(long tiendaId) throws RuntimeException;
 }

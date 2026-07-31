@@ -31,7 +31,28 @@ public class ProductoMapper {
                 toUnidadRespDTO(producto.getUnidad()),
                 toProveedorRespDTO(producto.getProveedor()),
                 toProductoImagenes(producto.getImagenes()),
-                producto.getCodStatus()
+                producto.getCodStatus(),
+                List.of()
+        );
+    }
+    public ProductoRespDTO toRespDTO(Producto producto, List<ProductoPrecioAlmacenResp> precios) {
+        if (producto == null) {
+            return null;
+        }
+        return new ProductoRespDTO(
+                producto.getId(),
+                producto.getUuid(),
+                producto.getCode(),
+                producto.getName(),
+                producto.getDescription(),
+                toCategoriaRespDTO(producto.getCategoria()),
+                toCategoriaRespDTO(producto.getSubcategoria()),
+                toMarcaRespDTO(producto.getMarca()),
+                toUnidadRespDTO(producto.getUnidad()),
+                toProveedorRespDTO(producto.getProveedor()),
+                toProductoImagenes(producto.getImagenes()),
+                producto.getCodStatus(),
+                precios
         );
     }
 

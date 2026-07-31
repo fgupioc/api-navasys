@@ -7,6 +7,7 @@ import com.fgupioc.api_novasys.dtos.mappers.CompraMapper;
 import com.fgupioc.api_novasys.models.*;
 import com.fgupioc.api_novasys.models.enums.InventarioMovimientoTipo;
 import com.fgupioc.api_novasys.models.enums.InventarioReferenciaTipo;
+import com.fgupioc.api_novasys.models.enums.TipoPreciosTipo;
 import com.fgupioc.api_novasys.models.interfaces.CompraListado;
 import com.fgupioc.api_novasys.repository.*;
 import com.fgupioc.api_novasys.service.ICompraService;
@@ -40,6 +41,7 @@ public class CompraService implements ICompraService {
     private final CompraDetalleRepository compraDetalleRepository;
     private final InventarioMovimientoRepository inventarioMovimientoRepository;
     private final ProductoRepository productoRepository;
+    private final ProductoPrecioRepository productoPrecioRepository;
     private final OrdenCompraPdfService ordenCompraPdfService;
 
     @Override
@@ -84,20 +86,6 @@ public class CompraService implements ICompraService {
                 purchaseDetail.setSubtotal(detail.unitCost().multiply(BigDecimal.valueOf(detail.quantity())).subtract(detail.discount()));
 
                 compraDetalleRepository.save(purchaseDetail);
-/*
-                InventarioMovimiento movement = new InventarioMovimiento();
-
-                movement.setProducto(producto);
-                movement.setAlmacen(compra.getAlmacen());
-                movement.setTipoMovimiento(InventarioMovimientoTipo.PURCHASE_IN);
-                movement.setTipoReferencia(InventarioReferenciaTipo.PURCHASE);
-                movement.setReferenceId(purchaseDetail.getId());
-                movement.setQuantity(detail.quantity());
-                movement.setUnitCost(detail.unitCost());
-                movement.setDiscount(detail.discount());
-
-                inventarioMovimientoRepository.save(movement);
-                */
 
             }
             return compraMapper.toRespDTO(save, List.of());
@@ -179,6 +167,23 @@ public class CompraService implements ICompraService {
                     movement.setDiscount(detail.discount());
 
                     inventarioMovimientoRepository.save(movement);
+                    List<ProductoPrecio> productoPrecioDB = productoPrecioRepository.findAllByProductoAndAlmacen(producto, almacen);
+                    List<TipoPreciosTipo> tiposPrecios = List.of(TipoPreciosTipo.REGULAR, TipoPreciosTipo.WHOLESALE, TipoPreciosTipo.SALE);
+                    for (TipoPreciosTipo tipoPrecio : tiposPrecios) {
+                        ProductoPrecio productoPrecio = productoPrecioDB.stream()
+                                .filter(pp -> pp.getPriceType() == tipoPrecio)
+                                .findFirst()
+                                .orElseGet(() -> {
+                                    ProductoPrecio newProductoPrecio = new ProductoPrecio();
+                                    newProductoPrecio.setProducto(producto);
+                                    newProductoPrecio.setAlmacen(almacen);
+                                    newProductoPrecio.setPriceType(tipoPrecio);
+                                    return newProductoPrecio;
+                                });
+                        productoPrecio.setSalePrice(detail.salePrice());
+                        productoPrecioRepository.save(productoPrecio);
+                    }
+
                 }
             }
             return compraMapper.toRespDTO(save, List.of());
