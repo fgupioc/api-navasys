@@ -1,9 +1,9 @@
 package com.fgupioc.api_novasys.repository;
 
-import com.fgupioc.api_novasys.models.Rol;
+import com.fgupioc.api_novasys.models.Role;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface RolRepository extends JpaRepository<Rol, Long> {
+public interface RoleRepository extends JpaRepository<Role, Long> {
 }

@@ -1,9 +1,8 @@
 package com.fgupioc.api_novasys.security.jwt;
 
-import com.fgupioc.api_novasys.models.User;
-import com.fgupioc.api_novasys.repository.UserRepository;
-import com.fgupioc.api_novasys.security.models.UserView;
 import com.fgupioc.api_novasys.security.service.IJwtService;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,56 +20,58 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.List;
 
 @Component
 @RequiredArgsConstructor
 @Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
+
     private final IJwtService jwtService;
     private final UserDetailsService userDetailsService;
-    private final UserRepository userRepository;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        final String token = getTokenFromRequest(request);
-        String username = "";
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain) throws ServletException, IOException {
 
-        if (token == null) {
+        final String token = getTokenFromRequest(request);
+
+        if (token == null || SecurityContextHolder.getContext().getAuthentication() != null) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        username = jwtService.getTokenFormRequest(token);
+        try {
+            String username = jwtService.getTokenFormRequest(token);
 
-        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-            if (jwtService.isTokenValid(token, userDetails)) {
-                UserView principal = jwtService.decodeToken(token);
-                User user = userRepository.findByDocument(principal.getDocument())
-                        .orElseThrow(() -> new RuntimeException("User not found"));
-                principal.setRoleId(user.getRol().getId());
-                UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(
-                                principal,
-                                null,
-                                List.of() // roles si los tienes
-                        );
+            if (username != null) {
+                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
-                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext()
-                        .setAuthentication(authentication);
+                if (jwtService.isTokenValid(token, userDetails)) {
+                    var authentication = new UsernamePasswordAuthenticationToken(
+                            userDetails,
+                            null,
+                            userDetails.getAuthorities());
+
+                    authentication.setDetails(
+                            new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                }
             }
+        } catch (ExpiredJwtException e) {
+            log.debug("Token expirado para la petición {}", request.getRequestURI());
+        } catch (JwtException | IllegalArgumentException e) {
+            log.warn("Token inválido: {}", e.getMessage());
         }
+
         filterChain.doFilter(request, response);
     }
 
     private String getTokenFromRequest(HttpServletRequest request) {
-        final String authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
-        if (StringUtils.hasText(authorizationHeader) && authorizationHeader.startsWith("Bearer ")) {
-            return authorizationHeader.substring(7);
+        final String header = request.getHeader(HttpHeaders.AUTHORIZATION);
+        if (StringUtils.hasText(header) && header.startsWith("Bearer ")) {
+            return header.substring(7);
         }
-
         return null;
     }
 }

@@ -4,6 +4,7 @@ package com.fgupioc.api_novasys.repository;
 import com.fgupioc.api_novasys.models.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -28,4 +29,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query("SELECT CASE WHEN COUNT(u) > 0 THEN true ELSE false END FROM User u WHERE u.id <> :id AND u.document = :document")
     boolean existsByDocumentDistinctId(Long id, String document);
+
+    @Query("SELECT u FROM User u JOIN FETCH u.rol WHERE u.document = :document")
+    Optional<User> findByDocumentWithRol(@Param("document") String document);
 }

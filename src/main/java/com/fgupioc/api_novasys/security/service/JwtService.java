@@ -25,7 +25,7 @@ public class JwtService implements IJwtService {
     private static final long REFRESH_TOKEN_EXPIRATION = 1000 * 60 * 60 * 24 * 7; // 7 días
 
     @Override
-    public String generateToken(User user) throws Exception {
+    public String generateToken(User user) throws RuntimeException {
         Map<String, Object> claims = getStringObjectMap(user);
 
         return getToken(claims, user);

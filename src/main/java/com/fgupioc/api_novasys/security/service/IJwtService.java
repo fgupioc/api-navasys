@@ -5,9 +5,9 @@ import com.fgupioc.api_novasys.security.models.UserView;
 import org.springframework.security.core.userdetails.UserDetails;
 
 public interface IJwtService {
-    String generateToken(User user) throws Exception;
+    String generateToken(User user) throws RuntimeException;
 
-    String generateRefreshToken(User user) throws Exception;
+    String generateRefreshToken(User user) throws RuntimeException;
 
     String getTokenFormRequest(String token);
 
