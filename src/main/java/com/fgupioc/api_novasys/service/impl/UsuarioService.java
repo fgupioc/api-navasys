@@ -1,15 +1,19 @@
 package com.fgupioc.api_novasys.service.impl;
 
 import com.fgupioc.api_novasys.dtos.CrearUsuarioReqDTO;
+import com.fgupioc.api_novasys.dtos.UserDto;
 import com.fgupioc.api_novasys.helpers.BusinessException;
 import com.fgupioc.api_novasys.helpers.CONST;
 import com.fgupioc.api_novasys.helpers.ResourceNotFoundException;
 import com.fgupioc.api_novasys.models.*;
 import com.fgupioc.api_novasys.models.enums.Alcance;
+import com.fgupioc.api_novasys.models.interfaces.IUsuarioAlmacen;
 import com.fgupioc.api_novasys.repository.*;
 import com.fgupioc.api_novasys.security.config.SecurityUtil;
+import com.fgupioc.api_novasys.service.IUsuarioService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -27,7 +31,7 @@ import java.util.List;
  */
 @Service
 @RequiredArgsConstructor
-public class UserDetailsServiceImpl implements UserDetailsService {
+public class UsuarioService implements UserDetailsService, IUsuarioService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final UsuarioAlmacenRepository usuarioAlmacenRepository;
@@ -104,5 +108,44 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                     .isDefault(i == 0)
                     .build());
         }
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<IUsuarioAlmacen> almacenes(Authentication authentication) throws RuntimeException {
+        UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
+        if (principal == null) {
+            throw new UsernameNotFoundException("Usuario no autenticado");
+        }
+        User user = userRepository.findById(principal.id())
+                .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado"));
+        return usuarioAlmacenRepository.findByUserId(user.getId());
+    }
+
+    @Override
+    public IUsuarioAlmacen miAlmacen(Authentication authentication, Long almacenId) throws RuntimeException {
+        UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
+        if (principal == null) {
+            throw new UsernameNotFoundException("Usuario no autenticado");
+        }
+        User user = userRepository.findById(principal.id())
+                .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado"));
+        return usuarioAlmacenRepository.findByUserIdAndAlmacenId(user.getId(), almacenId)
+                .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado"));
+    }
+
+    @Override
+    public UserDto findByDocument(String document) throws RuntimeException {
+        User user = userRepository.findByDocument(document)
+                .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado"));
+        return UserDto.builder()
+                .id(user.getId())
+                .name(user.getName())
+                .lastname(user.getLastname())
+                .document(user.getDocument())
+                .phone(user.getPhone())
+                .codStatus(user.getCodStatus())
+                .status("Activo")
+                .build();
     }
 }

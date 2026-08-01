@@ -1,6 +1,7 @@
 package com.fgupioc.api_novasys.security.service;
 
 import com.fgupioc.api_novasys.models.User;
+import com.fgupioc.api_novasys.repository.UserRepository;
 import com.fgupioc.api_novasys.security.models.UserView;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -9,6 +10,7 @@ import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
@@ -21,6 +23,7 @@ import java.util.function.Function;
 @RequiredArgsConstructor
 @Slf4j
 public class JwtService implements IJwtService {
+    private final UserRepository userRepository;
     private static final String SECRET_KEY = "586E3272357538782F413F4428472B4B6250655368566B597033733676397924";
     private static final long REFRESH_TOKEN_EXPIRATION = 1000 * 60 * 60 * 24 * 7; // 7 días
 
@@ -48,7 +51,8 @@ public class JwtService implements IJwtService {
     @Override
     public boolean isTokenValid(String token, UserDetails userDetails) {
         final String username = getUsernameFromToken(token);
-        User user = (User) userDetails;
+        User user = userRepository.findByDocument(username)
+                .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado"));
         return (username.equals(user.getDocument()) && !isTokenExpired(token));
     }
 
