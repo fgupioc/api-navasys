@@ -67,4 +67,8 @@ public class User extends BaseEntity {
         this.codStatus = CONST.STATUS_ACTIVE;
         this.registrationDate = LocalDateTime.now();
     }
+
+    public String getStatus() {
+        return CONST.STATUS_ACTIVE.equalsIgnoreCase(codStatus) ? "Activo" : "Inactivo";
+    }
 }

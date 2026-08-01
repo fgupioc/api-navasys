@@ -12,11 +12,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Function;
 
 @Service
@@ -26,6 +28,8 @@ public class JwtService implements IJwtService {
     private final UserRepository userRepository;
     private static final String SECRET_KEY = "586E3272357538782F413F4428472B4B6250655368566B597033733676397924";
     private static final long REFRESH_TOKEN_EXPIRATION = 1000 * 60 * 60 * 24 * 7; // 7 días
+    private static final long ACCESS_TOKEN_EXPIRATION  = 1000L * 60 * 60 * 8;
+    public static final String CLAIM_SUCURSAL = "sucursalId";
 
     @Override
     public String generateToken(User user) throws RuntimeException {
@@ -80,7 +84,7 @@ public class JwtService implements IJwtService {
                 .claims(claims)
                 .subject(user.getDocument())
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() * 1000 * 60 * 24))
+                .expiration(new Date(System.currentTimeMillis() + ACCESS_TOKEN_EXPIRATION))
                 .signWith(getKey())
                 .compact();
     }
@@ -112,14 +116,28 @@ public class JwtService implements IJwtService {
         return refreshToken;
     }
 
+    @Override
+    public String generateRefreshToken(User user, UUID sucursalUuid) throws RuntimeException {
+        return buildToken(user, sucursalUuid, REFRESH_TOKEN_EXPIRATION);
+    }
+
     private String buildToken(User user, long expiration) {
+        return buildToken(user, null, expiration);
+    }
+
+    private String buildToken(User user, UUID sucursalUuid, long expiration) {
         Map<String, Object> claims = getStringObjectMap(user);
+        if (sucursalUuid != null) {
+            claims.put(CLAIM_SUCURSAL, sucursalUuid.toString());
+        }
+
+        long ahora = System.currentTimeMillis();
 
         return Jwts.builder()
                 .claims(claims)
                 .subject(user.getDocument())
-                .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + expiration))
+                .issuedAt(new Date(ahora))
+                .expiration(new Date(ahora + expiration))   // suma, no multiplicación
                 .signWith(getKey())
                 .compact();
     }
@@ -167,5 +185,9 @@ public class JwtService implements IJwtService {
                 .firstName(firstName)
                 .lastName(lastName)
                 .build();
+    }
+
+    public String generateTokenWithSucursal(User user, UUID sucursalUuid) throws RuntimeException {
+        return buildToken(user, sucursalUuid, ACCESS_TOKEN_EXPIRATION);
     }
 }

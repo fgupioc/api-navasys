@@ -145,7 +145,8 @@ public class UsuarioService implements UserDetailsService, IUsuarioService {
                 .document(user.getDocument())
                 .phone(user.getPhone())
                 .codStatus(user.getCodStatus())
-                .status("Activo")
+                .status(user.getStatus())
+                .role(user.getRol().getName())
                 .build();
     }
 }

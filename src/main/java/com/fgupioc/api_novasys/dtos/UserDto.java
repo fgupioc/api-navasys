@@ -22,6 +22,7 @@ public class UserDto {
     private String phone;
     private String codStatus;
     private String status;
+    private String role;
 
     public String getStatus() {
         return "1".equalsIgnoreCase(codStatus) ? "Activo" : "Inactivo";
