@@ -5,6 +5,7 @@ import com.fgupioc.api_novasys.helpers.ApiResponse;
 import com.fgupioc.api_novasys.service.IVentaService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -34,13 +35,13 @@ public class VentaController {
     }
 
     @PostMapping("/registrar")
-    public ResponseEntity<?> registrarVenta(@RequestBody VentaReqDTO ventaReqDTO) {
-        return ResponseEntity.ok(ApiResponse.success(ventaService.registrar(ventaReqDTO)));
+    public ResponseEntity<?> registrarVenta(@RequestBody VentaReqDTO ventaReqDTO, Authentication authentication) {
+        return ResponseEntity.ok(ApiResponse.success(ventaService.registrar(ventaReqDTO, authentication)));
     }
 
     @PutMapping("/actualizar/{uuid}")
-    public ResponseEntity<?> actualizarVenta(@PathVariable UUID uuid, @RequestBody VentaReqDTO ventaReqDTO) {
-        return ResponseEntity.ok(ApiResponse.success(ventaService.actualizar(uuid, ventaReqDTO)));
+    public ResponseEntity<?> actualizarVenta(@PathVariable UUID uuid, @RequestBody VentaReqDTO ventaReqDTO, Authentication authentication) {
+        return ResponseEntity.ok(ApiResponse.success(ventaService.actualizar(uuid, ventaReqDTO, authentication)));
     }
 
     @PutMapping("/cancelar/{uuid}")

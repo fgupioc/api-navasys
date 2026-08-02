@@ -9,6 +9,7 @@ import com.fgupioc.api_novasys.service.IVentaService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,13 +32,15 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class VentaService implements IVentaService {
+    private final ModelMapper modelMapper;
     private final ClienteRepository clienteRepository;
     private final ProductoRepository productoRepository;
     private final VentaRepository ventaRepository;
     private final VentaDetalleRepository ventaDetalleRepository;
     private final VentaPagoRepository ventaPagoRepository;
     private final MaestroRepository maestroRepository;
-    private final ModelMapper modelMapper;
+    private final AlmacenRepository almacenRepository;
+    private final InventarioMovimientoRepository inventarioMovimientoRepository;
 
     @Override
     public List<VentaListado> filtrarVentas(LocalDate desde, LocalDate hasta, Long customerId, String codStatus) throws RuntimeException {
@@ -46,10 +49,10 @@ public class VentaService implements IVentaService {
 
     @Override
     @Transactional
-    public UUID registrar(VentaReqDTO ventaReqDTO) throws RuntimeException {
+    public UUID registrar(VentaReqDTO ventaReqDTO, Authentication authentication) throws RuntimeException {
         try {
             if (ventaReqDTO.getUuid() != null) {
-                return actualizar(ventaReqDTO.getUuid(), ventaReqDTO);
+                return actualizar(ventaReqDTO.getUuid(), ventaReqDTO, authentication);
             } else {
                 Venta venta = ventaReqDTO.toEntity();
                 Cliente cliente = clienteRepository.findById(ventaReqDTO.getCustomerId())
@@ -113,8 +116,16 @@ public class VentaService implements IVentaService {
 
     @Override
     @Transactional
-    public UUID actualizar(UUID uuid, VentaReqDTO ventaReqDTO) throws RuntimeException {
+    public UUID actualizar(UUID uuid, VentaReqDTO ventaReqDTO, Authentication authentication) throws RuntimeException {
         try {
+
+            UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
+            if (principal == null) {
+                throw new ResourceNotFoundException("Usuario no autenticado");
+            }
+            Almacen almacen = almacenRepository.findById(principal.branchId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Almacén no encontrado: " + principal.branchId()));
+
             Venta venta = ventaRepository.findByUuid(uuid)
                     .orElseThrow(() -> new ResourceNotFoundException("Venta no encontrada con UUID: " + uuid));
             Cliente cliente = clienteRepository.findById(ventaReqDTO.getCustomerId())
@@ -153,6 +164,7 @@ public class VentaService implements IVentaService {
                 detalle.setDiscount(detail.getDiscount());
                 detalle.setSubtotal(detail.getUnitPrice().multiply(BigDecimal.valueOf(detail.getQuantity())).subtract(detail.getDiscount()));
                 ventaDetalleRepository.save(detalle);
+                inventarioMovimientoRepository.restarStock(almacen.getId(), producto.getId(), detail.getQuantity());
             }
 
             log.info("Venta actualizada con éxito: {}", savedVenta.getId());

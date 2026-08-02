@@ -10,6 +10,7 @@ import com.fgupioc.api_novasys.helpers.ResourceNotFoundException;
 import com.fgupioc.api_novasys.models.*;
 import com.fgupioc.api_novasys.models.enums.TipoPreciosTipo;
 import com.fgupioc.api_novasys.models.interfaces.IProductoAlmacenList;
+import com.fgupioc.api_novasys.models.interfaces.IProductoPOS;
 import com.fgupioc.api_novasys.models.interfaces.ProductoAlmacen;
 import com.fgupioc.api_novasys.models.interfaces.ProductoAutocompledado;
 import com.fgupioc.api_novasys.repository.*;
@@ -18,6 +19,7 @@ import com.fgupioc.api_novasys.service.IProductoService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -285,5 +287,16 @@ public class ProductoService implements IProductoService {
 
         almacen.setCodStatus(CONST.STATUS_ACTIVE);
         inventarioMovimientoRepository.save(almacen);
+    }
+
+    @Override
+    public List<IProductoPOS> listarProductosPOS(Authentication authentication) throws RuntimeException {
+        UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
+        if (principal == null) {
+            throw new ResourceNotFoundException("Usuario no autenticado");
+        }
+        Almacen almacen = almacenRepository.findById(principal.branchId())
+                .orElseThrow(() -> new ResourceNotFoundException("Almacén no encontrado: " + principal.branchId()));
+        return productoRepository.findProductosPOSByAlmacenId(almacen.getUuid());
     }
 }

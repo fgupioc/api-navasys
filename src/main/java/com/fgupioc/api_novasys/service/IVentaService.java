@@ -4,6 +4,7 @@ import com.fgupioc.api_novasys.dtos.TicketDTO;
 import com.fgupioc.api_novasys.dtos.VentaReqDTO;
 import com.fgupioc.api_novasys.dtos.VentaRespDTO;
 import com.fgupioc.api_novasys.models.interfaces.VentaListado;
+import org.springframework.security.core.Authentication;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -16,9 +17,9 @@ import java.util.UUID;
  * @since 27/07/2026
  */
 public interface IVentaService {
-    UUID registrar(VentaReqDTO ventaReqDTO) throws RuntimeException;
+    UUID registrar(VentaReqDTO ventaReqDTO, Authentication authentication) throws RuntimeException;
 
-    UUID actualizar(UUID uuid, VentaReqDTO ventaReqDTO) throws RuntimeException;
+    UUID actualizar(UUID uuid, VentaReqDTO ventaReqDTO, Authentication authentication) throws RuntimeException;
 
     List<VentaListado> filtrarVentas(LocalDate desde, LocalDate hasta, Long customerId, String codStatus) throws RuntimeException;
 

@@ -35,4 +35,8 @@ public interface InventarioMovimientoRepository extends JpaRepository<Inventario
     @Modifying
     @Query("update InventarioMovimiento im set im.codStatus = :codStatus where im.almacen.id = :warehouseId and im.producto.id = :id")
     void updateStatus(Long warehouseId, Long id, String codStatus);
+
+    @Modifying
+    @Query("update InventarioMovimiento im set im.currentQuantity = im.currentQuantity - :quantity where im.almacen.id = :warehouseId and im.producto.id = :productId")
+    void restarStock(Long warehouseId, Long productId, Double quantity);
 }

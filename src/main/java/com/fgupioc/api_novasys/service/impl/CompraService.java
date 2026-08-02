@@ -4,6 +4,7 @@ import com.fgupioc.api_novasys.dtos.CompraProducto;
 import com.fgupioc.api_novasys.dtos.CompraReqDTO;
 import com.fgupioc.api_novasys.dtos.CompraRespDTO;
 import com.fgupioc.api_novasys.dtos.mappers.CompraMapper;
+import com.fgupioc.api_novasys.helpers.CONST;
 import com.fgupioc.api_novasys.models.*;
 import com.fgupioc.api_novasys.models.enums.InventarioMovimientoTipo;
 import com.fgupioc.api_novasys.models.enums.InventarioReferenciaTipo;
@@ -178,6 +179,8 @@ public class CompraService implements ICompraService {
                                     newProductoPrecio.setProducto(producto);
                                     newProductoPrecio.setAlmacen(almacen);
                                     newProductoPrecio.setPriceType(tipoPrecio);
+                                    newProductoPrecio.setCodStatus(CONST.STATUS_ACTIVE);
+                                    newProductoPrecio.setMinimumQuantity(1);
                                     return newProductoPrecio;
                                 });
                         productoPrecio.setSalePrice(detail.salePrice());

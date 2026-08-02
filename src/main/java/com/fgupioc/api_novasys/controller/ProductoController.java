@@ -4,6 +4,7 @@ import com.fgupioc.api_novasys.dtos.ProductoReqDTO;
 import com.fgupioc.api_novasys.dtos.ProductoRespDTO;
 import com.fgupioc.api_novasys.helpers.ApiResponse;
 import com.fgupioc.api_novasys.models.interfaces.IProductoAlmacenList;
+import com.fgupioc.api_novasys.models.interfaces.IProductoPOS;
 import com.fgupioc.api_novasys.service.IImagenStorageService;
 import com.fgupioc.api_novasys.service.IProductoService;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +12,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -44,6 +46,14 @@ public class ProductoController {
         List<?> productos = productoService.listarProductos();
         return ResponseEntity.ok(ApiResponse.success("Lista de productos", productos));
     }
+
+
+    @GetMapping("listar-producto-pos")
+    public ResponseEntity<?> listarProductosPOS(Authentication authentication) {
+        List<IProductoPOS> productos = productoService.listarProductosPOS(authentication);
+        return ResponseEntity.ok(ApiResponse.success("Lista de productos", productos));
+    }
+
 
     @GetMapping("/listar-almacen/{uuid}")
     public ResponseEntity<?> listarProductosPorAlmacen(@PathVariable UUID uuid) {
