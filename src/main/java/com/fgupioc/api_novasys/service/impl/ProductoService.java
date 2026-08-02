@@ -101,6 +101,8 @@ public class ProductoService implements IProductoService {
                         .id(p.getId())
                         .priceType(p.getPriceType())
                         .salePrice(p.getSalePrice())
+                        .codStatus(p.getCodStatus())
+                        .minimumQuantity(p.getMinimumQuantity())
                         .build())
                 .toList();
     }
@@ -215,7 +217,7 @@ public class ProductoService implements IProductoService {
         if (request.almacenes() != null && !request.almacenes().isEmpty()) {
             for (ProductoPrecioAlmacenResp almacenResp : request.almacenes()) {
                 for (ProductoPrecioResp precio: almacenResp.getPrecios()) {
-                    productoPrecioRepository.updatePrecio(precio.getId(), precio.getSalePrice());
+                    productoPrecioRepository.updatePrecio(precio.getId(), precio.getSalePrice(), precio.getMinimumQuantity(), precio.getCodStatus());
                 }
                 inventarioMovimientoRepository.updateStatus(almacenResp.getWarehouseId(), producto.getId(), almacenResp.getCodStatus());
             }

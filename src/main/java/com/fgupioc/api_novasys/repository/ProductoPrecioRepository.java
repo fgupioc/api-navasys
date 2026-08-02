@@ -21,6 +21,6 @@ public interface ProductoPrecioRepository extends JpaRepository<ProductoPrecio, 
     List<ProductoPrecio> findByProductoId(Long tiendaId, Long productId);
 
     @Modifying
-    @Query("UPDATE ProductoPrecio pp SET pp.salePrice = :salePrice WHERE pp.id = :id")
-    void updatePrecio(Long id, BigDecimal salePrice);
+    @Query("UPDATE ProductoPrecio pp SET pp.salePrice = :salePrice, pp.minimumQuantity = :minimumQuantity, pp.codStatus = :codStatus WHERE pp.id = :id")
+    void updatePrecio(Long id, BigDecimal salePrice, Integer minimumQuantity, String codStatus);
 }

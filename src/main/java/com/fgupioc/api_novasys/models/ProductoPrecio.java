@@ -50,4 +50,8 @@ public class ProductoPrecio {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "almacen_id")
     private Almacen almacen;
+
+    @Column(name = "minimum_quantity")
+    private Integer minimumQuantity;
+    private String codStatus;
 }

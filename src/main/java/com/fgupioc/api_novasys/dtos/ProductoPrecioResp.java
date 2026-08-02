@@ -22,4 +22,6 @@ public class ProductoPrecioResp {
     private Long id;
     private TipoPreciosTipo priceType;
     private BigDecimal salePrice;
+    private Integer minimumQuantity;
+    private String codStatus;
 }
