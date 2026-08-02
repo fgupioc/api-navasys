@@ -3,6 +3,7 @@ package com.fgupioc.api_novasys.service;
 import com.fgupioc.api_novasys.dtos.ProductoReqDTO;
 import com.fgupioc.api_novasys.dtos.ProductoRespDTO;
 import com.fgupioc.api_novasys.models.Producto;
+import com.fgupioc.api_novasys.models.interfaces.IProductoAlmacenList;
 import com.fgupioc.api_novasys.models.interfaces.ProductoAutocompledado;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -28,4 +29,6 @@ public interface IProductoService {
     void eliminar(UUID uuid) throws RuntimeException;
 
     List<ProductoAutocompledado> buscarAutocompletado(String term) throws RuntimeException;
+
+    List<IProductoAlmacenList> listarProductosPorAlmacen(UUID uuid) throws RuntimeException;
 }

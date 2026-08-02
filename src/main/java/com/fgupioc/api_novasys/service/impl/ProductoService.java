@@ -8,6 +8,7 @@ import com.fgupioc.api_novasys.dtos.mappers.ProductoMapper;
 import com.fgupioc.api_novasys.helpers.ResourceNotFoundException;
 import com.fgupioc.api_novasys.models.*;
 import com.fgupioc.api_novasys.models.enums.TipoPreciosTipo;
+import com.fgupioc.api_novasys.models.interfaces.IProductoAlmacenList;
 import com.fgupioc.api_novasys.models.interfaces.ProductoAlmacen;
 import com.fgupioc.api_novasys.models.interfaces.ProductoAutocompledado;
 import com.fgupioc.api_novasys.repository.*;
@@ -257,5 +258,10 @@ public class ProductoService implements IProductoService {
     public List<ProductoAutocompledado> buscarAutocompletado(String term) throws RuntimeException {
         String normalizado = (term == null || term.isBlank()) ? null : term.trim();
         return productoRepository.buscarProductos(normalizado);
+    }
+
+    @Override
+    public List<IProductoAlmacenList> listarProductosPorAlmacen(UUID uuid) throws RuntimeException {
+        return productoRepository.findProductosByAlmacenId(uuid.toString());
     }
 }

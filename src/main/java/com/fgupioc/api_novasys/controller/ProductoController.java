@@ -3,6 +3,7 @@ package com.fgupioc.api_novasys.controller;
 import com.fgupioc.api_novasys.dtos.ProductoReqDTO;
 import com.fgupioc.api_novasys.dtos.ProductoRespDTO;
 import com.fgupioc.api_novasys.helpers.ApiResponse;
+import com.fgupioc.api_novasys.models.interfaces.IProductoAlmacenList;
 import com.fgupioc.api_novasys.service.IImagenStorageService;
 import com.fgupioc.api_novasys.service.IProductoService;
 import com.fgupioc.api_novasys.service.OrdenCompraPdfService;
@@ -44,6 +45,13 @@ public class ProductoController {
         List<?> productos = productoService.listarProductos();
         return ResponseEntity.ok(ApiResponse.success("Lista de productos", productos));
     }
+
+    @GetMapping("/listar-almacen/{uuid}")
+    public ResponseEntity<?> listarProductosPorAlmacen(@PathVariable UUID uuid) {
+        List<IProductoAlmacenList> productos = productoService.listarProductosPorAlmacen(uuid);
+        return ResponseEntity.ok(ApiResponse.success("Lista de productos", productos));
+    }
+
 
     @PostMapping(value = "registrar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> crearProducto(

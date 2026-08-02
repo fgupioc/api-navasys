@@ -40,6 +40,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authz -> authz
                         .requestMatchers(SWAGGER_WHITELIST).permitAll()
                         .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/api/productos/imagenes/**").permitAll()
                         .requestMatchers("/ws-viatra/**").permitAll()
                         .anyRequest().authenticated()
                 )
