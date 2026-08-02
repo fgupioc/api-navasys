@@ -3,6 +3,7 @@ package com.fgupioc.api_novasys.models.interfaces;
 import java.math.BigDecimal;
 
 public interface IProductoAlmacenList {
+    Long getInventoryMovementId();
     String getBarcode();
     String getCategoria();
     Long getCategoryId();

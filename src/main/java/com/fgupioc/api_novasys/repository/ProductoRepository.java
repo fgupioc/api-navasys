@@ -65,8 +65,8 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
     List<ProductoAutocompledado> buscarProductos(String term);
 
     @Query(value = """
-            
-            select p.id                as productId,
+            select im.id               as inventoryMovementId,
+                   p.id                as productId,
                    p.code,
                    p.name,
                    p.barcode,

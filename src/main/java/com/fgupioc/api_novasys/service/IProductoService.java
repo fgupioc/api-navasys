@@ -31,4 +31,8 @@ public interface IProductoService {
     List<ProductoAutocompledado> buscarAutocompletado(String term) throws RuntimeException;
 
     List<IProductoAlmacenList> listarProductosPorAlmacen(UUID uuid) throws RuntimeException;
+
+    void desactivarAlmacen(Long id) throws RuntimeException;
+
+    void activarAlmacen(Long id) throws RuntimeException;
 }

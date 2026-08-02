@@ -5,6 +5,7 @@ import com.fgupioc.api_novasys.dtos.ProductoPrecioResp;
 import com.fgupioc.api_novasys.dtos.ProductoReqDTO;
 import com.fgupioc.api_novasys.dtos.ProductoRespDTO;
 import com.fgupioc.api_novasys.dtos.mappers.ProductoMapper;
+import com.fgupioc.api_novasys.helpers.CONST;
 import com.fgupioc.api_novasys.helpers.ResourceNotFoundException;
 import com.fgupioc.api_novasys.models.*;
 import com.fgupioc.api_novasys.models.enums.TipoPreciosTipo;
@@ -263,5 +264,23 @@ public class ProductoService implements IProductoService {
     @Override
     public List<IProductoAlmacenList> listarProductosPorAlmacen(UUID uuid) throws RuntimeException {
         return productoRepository.findProductosByAlmacenId(uuid.toString());
+    }
+
+    @Override
+    public void desactivarAlmacen(Long id) throws RuntimeException {
+        InventarioMovimiento almacen = inventarioMovimientoRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Almacén no encontrado: " + id));
+
+        almacen.setCodStatus(CONST.STATUS_INACTIVE);
+        inventarioMovimientoRepository.save(almacen);
+    }
+
+    @Override
+    public void activarAlmacen(Long id) throws RuntimeException {
+        InventarioMovimiento almacen = inventarioMovimientoRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Almacén no encontrado: " + id));
+
+        almacen.setCodStatus(CONST.STATUS_ACTIVE);
+        inventarioMovimientoRepository.save(almacen);
     }
 }

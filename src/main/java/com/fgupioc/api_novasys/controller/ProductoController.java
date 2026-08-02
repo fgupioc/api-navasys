@@ -6,7 +6,6 @@ import com.fgupioc.api_novasys.helpers.ApiResponse;
 import com.fgupioc.api_novasys.models.interfaces.IProductoAlmacenList;
 import com.fgupioc.api_novasys.service.IImagenStorageService;
 import com.fgupioc.api_novasys.service.IProductoService;
-import com.fgupioc.api_novasys.service.OrdenCompraPdfService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -97,6 +96,18 @@ public class ProductoController {
     public ResponseEntity<?> eliminarProducto(@PathVariable UUID uuid) {
         productoService.eliminar(uuid);
         return ResponseEntity.ok(ApiResponse.success("Producto eliminado exitosamente", null));
+    }
+
+    @DeleteMapping("desactivar-almacen/{id}")
+    public ResponseEntity<?> desactivarAlmacen(@PathVariable Long id) {
+        productoService.desactivarAlmacen(id);
+        return ResponseEntity.ok(ApiResponse.success("Almacén desactivado exitosamente", null));
+    }
+
+    @PutMapping("activar-almacen/{id}")
+    public ResponseEntity<?> activarAlmacen(@PathVariable Long id) {
+        productoService.activarAlmacen(id);
+        return ResponseEntity.ok(ApiResponse.success("Almacén activado exitosamente", null));
     }
 
     @GetMapping("buscar-autocompletado")
