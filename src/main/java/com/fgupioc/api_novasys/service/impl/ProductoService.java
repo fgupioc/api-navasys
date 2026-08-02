@@ -77,6 +77,7 @@ public class ProductoService implements IProductoService {
 
         List<ProductoPrecioAlmacenResp> precios = almacenes.stream()
                 .map(a -> ProductoPrecioAlmacenResp.builder()
+                        .warehouseUuid(a.getWarehouseUuid())
                         .warehouseId(a.getWarehouseId())
                         .warehouseName(a.getWarehouseName())
                         .codStatus(a.getCodStatus())

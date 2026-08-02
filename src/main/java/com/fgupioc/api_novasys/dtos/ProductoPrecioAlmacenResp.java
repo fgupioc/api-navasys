@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * @author fgupioc - FRANZ
@@ -20,6 +21,7 @@ import java.util.List;
 @Builder
 public class ProductoPrecioAlmacenResp {
     private Long warehouseId;
+    private UUID warehouseUuid;
     private String warehouseName;
     private String codStatus;
     private Double stock;

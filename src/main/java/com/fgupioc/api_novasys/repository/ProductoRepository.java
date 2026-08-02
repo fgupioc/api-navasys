@@ -67,6 +67,7 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
     @Query(value = """
             select im.id               as inventoryMovementId,
                    p.id                as productId,
+                   BIN_TO_UUID(p.uuid) as uuid,
                    p.code,
                    p.name,
                    p.barcode,

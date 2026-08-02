@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 
 public interface IProductoAlmacenList {
     Long getInventoryMovementId();
+    String getUuid();
     String getBarcode();
     String getCategoria();
     Long getCategoryId();

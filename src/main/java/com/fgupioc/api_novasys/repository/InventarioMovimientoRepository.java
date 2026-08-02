@@ -13,6 +13,7 @@ public interface InventarioMovimientoRepository extends JpaRepository<Inventario
 
     @Query(value = """
             select a.id                     as warehouseId,
+                   BIN_TO_UUID(a.uuid)       as warehouseUuid,
                    a.name                   as warehouseName,
                    im.product_id            as productId,
                    im.cod_status            as codStatus,
@@ -27,7 +28,7 @@ public interface InventarioMovimientoRepository extends JpaRepository<Inventario
               and im.current_quantity > 0
               and p.cod_status = '1'
               and p.deleted_at is null
-            group by a.id, a.name, im.product_id, im.cod_status;
+            group by a.id, a.name, im.product_id, im.cod_status, warehouseUuid;
             """, nativeQuery = true)
     List<ProductoAlmacen> listarProductosAlmacenByAlmacenId(Long tiendaId, Long productoId);
 
