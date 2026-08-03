@@ -8,6 +8,8 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -49,6 +51,9 @@ public class Almacen extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "branch_id")
     private Tienda tienda;
+
+    @OneToMany(mappedBy = "almacen", fetch = FetchType.LAZY)
+    private List<Caja> cajas = new ArrayList<>();
 
     @PrePersist
     public void prePersist() {
