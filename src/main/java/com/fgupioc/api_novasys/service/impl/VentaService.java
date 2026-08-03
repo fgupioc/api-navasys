@@ -58,10 +58,13 @@ public class VentaService implements IVentaService {
             if (ventaReqDTO.getUuid() != null) {
                 return actualizar(ventaReqDTO.getUuid(), ventaReqDTO, authentication);
             } else {
+                Caja caja = cajaRepository.findByUuid(ventaReqDTO.getCashRegister())
+                        .orElseThrow(() -> new ResourceNotFoundException("Caja no encontrada con UUID: " + ventaReqDTO.getCashRegister()));
                 Venta venta = ventaReqDTO.toEntity();
                 Cliente cliente = clienteRepository.findById(ventaReqDTO.getCustomerId())
                         .orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado con ID: " + ventaReqDTO.getCustomerId()));
                 venta.setCustomer(cliente);
+                venta.setCaja(caja);
                 Long count = ventaRepository.count();
                 String code = "VEN" + String.format("%06d", count + 1);
                 venta.setCode(code);
@@ -283,7 +286,7 @@ public class VentaService implements IVentaService {
                 venta.getSubtotal(), venta.getTax(), venta.getTotal(),
                 venta.getTotal(), bd("0.00"),
                 metodoPago,
-                venta.getCashRegister()
+                venta.getCaja().getCode()
         );
     }
 

@@ -48,9 +48,10 @@ public interface VentaRepository extends JpaRepository<Venta, Long> {
               v.cod_status as codStatus,
                ms.nombre as status,
                ms.valor_string as statusStyle,
-               v.cash_register as cashRegister
+               ca.code as cashRegister
                 from ventas v
             inner join clientes c on v.customer_id = c.id
+            inner join cajas ca on v.caja_id = ca.id
             INNER JOIN maestro ms ON ms.tabla_id = 4 AND ms.codigo = v.cod_status
             left JOIN maestro mp ON mp.tabla_id = 5 AND mp.codigo = v.payment_method
             where (:desde is null or v.sale_date >= :desde)

@@ -58,7 +58,9 @@ public class Venta extends BaseEntity {
     private BigDecimal tax = BigDecimal.ZERO;
     private BigDecimal taxApplied = BigDecimal.ZERO;
     private BigDecimal total;
-    private String cashRegister;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "caja_id")
+    private Caja caja;
     @OneToMany(mappedBy = "sale", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<VentaPago> payments = new ArrayList<>();
 

@@ -49,4 +49,10 @@ public class UsuarioController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
     }
+
+    @GetMapping("mi-caja-activa")
+    public ResponseEntity<?> obtenerMiCajaActiva(Authentication authentication) {
+        return ResponseEntity.ok(ApiResponse.success(usuarioService.miCajaActiva(authentication)));
+    }
+
 }

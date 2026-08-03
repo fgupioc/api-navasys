@@ -1,5 +1,6 @@
 package com.fgupioc.api_novasys.service.impl;
 
+import com.fgupioc.api_novasys.dtos.CajaRespDTO;
 import com.fgupioc.api_novasys.dtos.CrearUsuarioReqDTO;
 import com.fgupioc.api_novasys.dtos.UserDto;
 import com.fgupioc.api_novasys.helpers.BusinessException;
@@ -39,6 +40,7 @@ public class UsuarioService implements UserDetailsService, IUsuarioService {
     private final PasswordEncoder passwordEncoder;
     private final TiendaRepository tiendaRepository;
     private final PermissionRepository permissionRepository;
+    private final CajaSesionRepository cajaSesionRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -148,5 +150,24 @@ public class UsuarioService implements UserDetailsService, IUsuarioService {
                 .status(user.getStatus())
                 .role(user.getRol().getName())
                 .build();
+    }
+
+    @Override
+    public CajaRespDTO miCajaActiva(Authentication authentication) throws RuntimeException {
+        UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
+        if (principal == null) {
+            throw new UsernameNotFoundException("Usuario no autenticado");
+        }
+        User user = userRepository.findById(principal.id())
+                .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado"));
+        return cajaSesionRepository.findByCajaOpenByUser(user.getId())
+                .map(cajaSesion -> CajaRespDTO.builder()
+                        .uuid(cajaSesion.getCaja().getUuid())
+                        .code(cajaSesion.getCaja().getCode())
+                        .name(cajaSesion.getCaja().getName())
+                        .description(cajaSesion.getCaja().getDescription())
+                        .status(cajaSesion.getStatus())
+                        .build())
+                .orElseThrow(() -> new ResourceNotFoundException("No hay caja activa para el usuario"));
     }
 }
