@@ -1,6 +1,7 @@
 package com.fgupioc.api_novasys.models;
 
 import com.fgupioc.api_novasys.helpers.CONST;
+import com.fgupioc.api_novasys.models.enums.EstadoSesionCaja;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;
@@ -37,14 +38,17 @@ public class Caja extends BaseEntity {
     private UUID uuid;
     private String code;
     private String name;
-    private String codStatus;
+    private String description;
+    @Column(name = "status", length = 20, nullable = false)
+    @Enumerated(EnumType.STRING)
+    private EstadoSesionCaja status;
     @OneToMany(mappedBy = "caja", fetch = FetchType.LAZY)
     private List<CajaSesion> sesiones = new ArrayList<>();
 
     @PrePersist
     public void prePersist() {
-        if (this.codStatus == null) {
-            this.codStatus = CONST.STATUS_ACTIVE;
+        if (this.status == null) {
+            this.status = EstadoSesionCaja.CLOSED;
         }
     }
 }

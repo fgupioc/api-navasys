@@ -1,8 +1,6 @@
 package com.fgupioc.api_novasys.service;
 
-import com.fgupioc.api_novasys.dtos.TicketDTO;
-import com.fgupioc.api_novasys.dtos.VentaReqDTO;
-import com.fgupioc.api_novasys.dtos.VentaRespDTO;
+import com.fgupioc.api_novasys.dtos.*;
 import com.fgupioc.api_novasys.models.interfaces.VentaListado;
 import org.springframework.security.core.Authentication;
 
@@ -30,4 +28,8 @@ public interface IVentaService {
     void eliminar(UUID uuid) throws RuntimeException;
 
     TicketDTO getItemParTicket(UUID uuid) throws RuntimeException;
+
+    List<CajaRespDTO> listarCajasPorAlmacen(Authentication authentication) throws RuntimeException;
+
+    void abrirCaja(CajaSesionReqDTO cajaSesion, Authentication authentication) throws RuntimeException;
 }

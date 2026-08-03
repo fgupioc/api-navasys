@@ -3,6 +3,7 @@ package com.fgupioc.api_novasys.service.impl;
 import com.fgupioc.api_novasys.dtos.*;
 import com.fgupioc.api_novasys.helpers.ResourceNotFoundException;
 import com.fgupioc.api_novasys.models.*;
+import com.fgupioc.api_novasys.models.enums.EstadoSesionCaja;
 import com.fgupioc.api_novasys.models.interfaces.VentaListado;
 import com.fgupioc.api_novasys.repository.*;
 import com.fgupioc.api_novasys.service.IVentaService;
@@ -41,6 +42,9 @@ public class VentaService implements IVentaService {
     private final MaestroRepository maestroRepository;
     private final AlmacenRepository almacenRepository;
     private final InventarioMovimientoRepository inventarioMovimientoRepository;
+    private final CajaRepository cajaRepository;
+    private final CajaSesionRepository cajaSesionRepository;
+    private final UserRepository userRepository;
 
     @Override
     public List<VentaListado> filtrarVentas(LocalDate desde, LocalDate hasta, Long customerId, String codStatus) throws RuntimeException {
@@ -285,5 +289,51 @@ public class VentaService implements IVentaService {
 
     private static BigDecimal bd(String v) {
         return new BigDecimal(v);
+    }
+
+    @Override
+    public List<CajaRespDTO> listarCajasPorAlmacen(Authentication authentication) throws RuntimeException {
+        UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
+        if (principal == null) {
+            throw new ResourceNotFoundException("Usuario no autenticado");
+        }
+        Almacen almacen = almacenRepository.findById(principal.branchId())
+                .orElseThrow(() -> new ResourceNotFoundException("Almacén no encontrado: " + principal.branchId()));
+        return cajaRepository.listaCajasPorAlmacen(almacen)
+                .stream()
+                .map(caja -> new CajaRespDTO( caja.getUuid(), caja.getCode(), caja.getName(), caja.getDescription(), caja.getStatus()))
+                .toList();
+    }
+
+    @Override
+    public void abrirCaja(CajaSesionReqDTO cajaSesion, Authentication authentication) throws RuntimeException {
+        try {
+            UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
+            if (principal == null) {
+                throw new ResourceNotFoundException("Usuario no autenticado");
+            }
+            User user = userRepository.findById(principal.id())
+                    .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado: " + principal.id()));
+            Caja caja = cajaRepository.findByUuid((cajaSesion.getCajaUuid()))
+                    .orElseThrow(() -> new ResourceNotFoundException("Caja no encontrada: " + cajaSesion.getCajaUuid()));
+            if (caja.getStatus().equals(EstadoSesionCaja.OPEN)) {
+                throw new RuntimeException("La caja ya está abierta. No se puede iniciar una nueva sesión de caja.");
+            }
+
+            caja.setStatus(EstadoSesionCaja.OPEN);
+            CajaSesion cajaSesionEntity = new CajaSesion();
+            cajaSesionEntity.setUser(user);
+            cajaSesionEntity.setCaja(caja);
+            cajaSesionEntity.setOpenedAt(LocalDateTime.now());
+            cajaSesionEntity.setOpeningAmount(cajaSesion.getOpeningAmount());
+            cajaSesionEntity.setClosingAmount(BigDecimal.ZERO);
+            cajaSesionEntity.setStatus(EstadoSesionCaja.OPEN);
+            cajaSesionEntity.setNotes("");
+
+            cajaSesionRepository.save(cajaSesionEntity);
+        } catch (RuntimeException e) {
+            log.error("Error al abrir la caja: {}", e.getMessage());
+            throw e;
+        }
     }
 }

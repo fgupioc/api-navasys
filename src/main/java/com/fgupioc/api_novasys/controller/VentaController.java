@@ -1,5 +1,6 @@
 package com.fgupioc.api_novasys.controller;
 
+import com.fgupioc.api_novasys.dtos.CajaSesionReqDTO;
 import com.fgupioc.api_novasys.dtos.VentaReqDTO;
 import com.fgupioc.api_novasys.helpers.ApiResponse;
 import com.fgupioc.api_novasys.service.IVentaService;
@@ -49,10 +50,22 @@ public class VentaController {
         ventaService.cancelar(uuid);
         return ResponseEntity.ok(ApiResponse.success("Venta cancelada exitosamente.", null));
     }
+
     @DeleteMapping("/{uuid}")
     public ResponseEntity<?> eliminarVenta(@PathVariable UUID uuid) {
         ventaService.eliminar(uuid);
         return ResponseEntity.ok(ApiResponse.success("Venta eliminada exitosamente.", null));
+    }
+
+    @GetMapping("/listar-mis-cajas-por-almacen")
+    public ResponseEntity<?> listarMisCajasPorAlmacen(Authentication authentication) {
+        return ResponseEntity.ok(ApiResponse.success(ventaService.listarCajasPorAlmacen(authentication)));
+    }
+
+    @PostMapping("/abrir-caja")
+    public ResponseEntity<?> abrirCaja(@RequestBody CajaSesionReqDTO cajaSesion, Authentication authentication) {
+        ventaService.abrirCaja(cajaSesion, authentication);
+        return ResponseEntity.ok(ApiResponse.success("Caja abierta exitosamente.", null));
     }
 }
 
