@@ -24,4 +24,13 @@ public class CajaRespDTO {
     private String name;
     private String description;
     private EstadoSesionCaja status;
+    private CajaSesionRespDTO cajaSesion;
+
+    public CajaRespDTO(UUID uuid, String code, String name, String description, EstadoSesionCaja status) {
+        this.uuid = uuid;
+        this.code = code;
+        this.name = name;
+        this.description = description;
+        this.status = status;
+    }
 }

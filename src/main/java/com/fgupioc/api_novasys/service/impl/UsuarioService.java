@@ -1,6 +1,7 @@
 package com.fgupioc.api_novasys.service.impl;
 
 import com.fgupioc.api_novasys.dtos.CajaRespDTO;
+import com.fgupioc.api_novasys.dtos.CajaSesionRespDTO;
 import com.fgupioc.api_novasys.dtos.CrearUsuarioReqDTO;
 import com.fgupioc.api_novasys.dtos.UserDto;
 import com.fgupioc.api_novasys.helpers.BusinessException;
@@ -167,7 +168,16 @@ public class UsuarioService implements UserDetailsService, IUsuarioService {
                         .name(cajaSesion.getCaja().getName())
                         .description(cajaSesion.getCaja().getDescription())
                         .status(cajaSesion.getStatus())
-                        .build())
+                        .cajaSesion(CajaSesionRespDTO.builder()
+                                .cajaSesionId(cajaSesion.getId())
+                                .openedAt(cajaSesion.getOpenedAt())
+                                .closedAt(cajaSesion.getClosedAt())
+                                .openingAmount(cajaSesion.getOpeningAmount())
+                                .closingAmount(cajaSesion.getClosingAmount())
+                                .status(cajaSesion.getStatus())
+                                .notes(cajaSesion.getNotes())
+                                .build()
+                        ).build())
                 .orElseThrow(() -> new ResourceNotFoundException("No hay caja activa para el usuario"));
     }
 }

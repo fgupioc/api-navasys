@@ -67,5 +67,11 @@ public class VentaController {
         ventaService.abrirCaja(cajaSesion, authentication);
         return ResponseEntity.ok(ApiResponse.success("Caja abierta exitosamente.", null));
     }
+
+    @PutMapping("/registrar-cierre-caja")
+    public ResponseEntity<?> registrarCierreCaja(@RequestBody CajaSesionReqDTO cajaSesion, Authentication authentication) {
+        ventaService.registrarCierreCaja(cajaSesion, authentication);
+        return ResponseEntity.ok(ApiResponse.success("Cierre de caja registrado exitosamente.", null));
+    }
 }
 

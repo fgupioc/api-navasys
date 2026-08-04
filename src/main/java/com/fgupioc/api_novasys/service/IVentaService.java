@@ -32,4 +32,6 @@ public interface IVentaService {
     List<CajaRespDTO> listarCajasPorAlmacen(Authentication authentication) throws RuntimeException;
 
     void abrirCaja(CajaSesionReqDTO cajaSesion, Authentication authentication) throws RuntimeException;
+
+    void registrarCierreCaja(CajaSesionReqDTO cajaSesion, Authentication authentication) throws RuntimeException;
 }

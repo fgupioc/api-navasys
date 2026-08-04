@@ -339,4 +339,35 @@ public class VentaService implements IVentaService {
             throw e;
         }
     }
+
+    @Override
+    public void registrarCierreCaja(CajaSesionReqDTO cajaSesion, Authentication authentication) throws RuntimeException {
+        try {
+            UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
+            if (principal == null) {
+                throw new ResourceNotFoundException("Usuario no autenticado");
+            }
+            User user = userRepository.findById(principal.id())
+                    .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado: " + principal.id()));
+            Caja caja = cajaRepository.findByUuid((cajaSesion.getCajaUuid()))
+                    .orElseThrow(() -> new ResourceNotFoundException("Caja no encontrada: " + cajaSesion.getCajaUuid()));
+            if (caja.getStatus().equals(EstadoSesionCaja.CLOSED)) {
+                throw new RuntimeException("La caja ya está cerrada. No se puede cerrar una sesión de caja que ya está cerrada.");
+            }
+
+            CajaSesion cajaSesionEntity = cajaSesionRepository.findById(cajaSesion.getCajaSesionId())
+                    .orElseThrow(() -> new RuntimeException("No hay una sesión de caja abierta para esta caja."));
+
+            caja.setStatus(EstadoSesionCaja.CLOSED);
+            cajaSesionEntity.setClosedAt(LocalDateTime.now());
+            cajaSesionEntity.setClosingAmount(cajaSesion.getClosingAmount());
+            cajaSesionEntity.setStatus(EstadoSesionCaja.CLOSED);
+            cajaSesionEntity.setNotes(cajaSesion.getNotes());
+
+            cajaSesionRepository.save(cajaSesionEntity);
+        } catch (RuntimeException e) {
+            log.error("Error al registrar el cierre de la caja: {}", e.getMessage());
+            throw e;
+        }
+    }
 }

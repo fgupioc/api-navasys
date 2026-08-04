@@ -45,5 +45,6 @@ public class CajaSesion extends BaseEntity {
     @Column(name = "status", length = 20, nullable = false)
     @Enumerated(EnumType.STRING)
     private EstadoSesionCaja status;
+    @Column(length = 501)
     private String notes;
 }
