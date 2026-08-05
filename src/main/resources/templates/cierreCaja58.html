@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8"/>
+    <style>
+        /* __PAGE_HEIGHT__ es reemplazado en Java con la altura calculada */
+        @page {
+            size: 58mm __PAGE_HEIGHT__mm;
+            margin: 0;
+        }
+
+        body {
+            margin: 0;
+            padding: 3mm 4mm;          /* ancho util = 50mm, seguro para cabezales de 48mm */
+            font-family: "TicketMono", "Courier New", monospace;
+            font-size: 8pt;
+            line-height: 1.25;
+            color: #000;
+        }
+
+        table { width: 100%; border-collapse: collapse; }
+        td { padding: 0.2mm 0; vertical-align: top; }
+
+        .r { text-align: right; white-space: nowrap; }
+        .c { text-align: center; }
+        .b { font-weight: bold; }
+        .up { text-transform: uppercase; }
+        .sm { font-size: 6.5pt; }
+        .lg { font-size: 10pt; }
+
+        .hr   { border-top: 0.4pt solid #000; margin: 1.5mm 0; }
+        .hr-d { border-top: 0.4pt dashed #000; margin: 1.5mm 0; }
+
+        .titulo {
+            font-size: 10.5pt;
+            font-weight: bold;
+            letter-spacing: 0.6pt;
+            text-align: center;
+            margin: 0.5mm 0;
+        }
+
+        .seccion {
+            font-weight: bold;
+            font-size: 7.5pt;
+            letter-spacing: 0.4pt;
+            margin: 1.5mm 0 0.8mm 0;
+        }
+
+        .caja-diferencia {
+            border: 1pt solid #000;
+            padding: 1.5mm 1mm;
+            margin: 1.5mm 0;
+            text-align: center;
+        }
+
+        .obs {
+            border: 0.4pt solid #000;
+            padding: 1mm;
+            margin-top: 1mm;
+            font-size: 7pt;
+            word-wrap: break-word;
+        }
+
+        .firma { margin-top: 8mm; }
+        .firma td { border-top: 0.4pt solid #000; padding-top: 0.8mm; }
+    </style>
+</head>
+<body>
+
+<!-- ================= CABECERA ================= -->
+<div class="c b up" th:text="${t.nombreComercial}">NOVASYS MARKET</div>
+<div class="c sm" th:text="${t.razonSocial}">Comercial Nova S.A.C.</div>
+<div class="c sm" th:text="'RUC ' + ${t.ruc}">RUC 20123456789</div>
+<div class="c sm" th:text="${t.direccionSucursal}">Av. Ejemplo 123 - Chachapoyas</div>
+
+<div class="hr"></div>
+<div class="titulo">CIERRE DE CAJA</div>
+<div class="c sm" th:text="${t.numeroCierre}">CIE-2026-000123</div>
+<div class="hr"></div>
+
+<!-- ================= INFORMACION DE LA CAJA ================= -->
+<div class="seccion">INFORMACION DE LA CAJA</div>
+<table>
+    <tr><td>Caja</td><td class="r b" th:text="${t.caja}">Caja 01 - Principal</td></tr>
+    <tr><td>Sucursal</td><td class="r" th:text="${t.sucursal}">Principal</td></tr>
+    <tr><td>Apertura</td><td class="r" th:text="${t.fechaApertura}">05/08/2026 08:59 AM</td></tr>
+    <tr><td>Cierre</td><td class="r" th:text="${t.fechaCierre}">05/08/2026 03:44 PM</td></tr>
+    <tr><td>Duracion</td><td class="r b" th:text="${t.duracion}">6 h 45 min</td></tr>
+</table>
+
+<div class="hr-d"></div>
+
+<!-- ================= RESPONSABLE ================= -->
+<div class="seccion">RESPONSABLE</div>
+<table>
+    <tr><td colspan="2" class="b" th:text="${t.usuarioNombre}">Milagros Quispe Alvarado</td></tr>
+    <tr><td>Documento</td><td class="r" th:text="${t.usuarioDocumento}">30000001</td></tr>
+    <tr><td>Rol</td><td class="r" th:text="${t.usuarioRol}">CAJERO</td></tr>
+    <tr><td>Turno</td><td class="r" th:text="${t.turno}">Manana</td></tr>
+</table>
+
+<div class="hr-d"></div>
+
+<!-- ================= MEDIOS DE PAGO ================= -->
+<div class="seccion">VENTAS POR MEDIO DE PAGO</div>
+<table>
+    <tr th:each="m : ${t.mediosPago}">
+        <td th:text="${m.nombre}">Efectivo</td>
+        <td class="r" th:text="'S/ ' + ${#numbers.formatDecimal(m.monto, 1, 'COMMA', 2, 'POINT')}">S/ 45.00</td>
+    </tr>
+</table>
+<div class="hr"></div>
+<table>
+    <tr class="b">
+        <td th:text="'TOTAL VENTAS (' + ${t.cantidadVentas} + ')'">TOTAL VENTAS (4)</td>
+        <td class="r" th:text="'S/ ' + ${#numbers.formatDecimal(t.totalVentas, 1, 'COMMA', 2, 'POINT')}">S/ 59.50</td>
+    </tr>
+</table>
+
+<div class="hr-d"></div>
+
+<!-- ================= ARQUEO DE EFECTIVO ================= -->
+<div class="seccion">ARQUEO DE EFECTIVO</div>
+<table>
+    <tr>
+        <td>Fondo inicial</td>
+        <td class="r" th:text="'S/ ' + ${#numbers.formatDecimal(t.fondoInicial, 1, 'COMMA', 2, 'POINT')}">S/ 150.00</td>
+    </tr>
+    <tr>
+        <td>Ventas en efectivo</td>
+        <td class="r" th:text="'+ S/ ' + ${#numbers.formatDecimal(t.ventasEfectivo, 1, 'COMMA', 2, 'POINT')}">+ S/ 45.00</td>
+    </tr>
+    <tr>
+        <td>Ingresos</td>
+        <td class="r" th:text="'+ S/ ' + ${#numbers.formatDecimal(t.ingresos, 1, 'COMMA', 2, 'POINT')}">+ S/ 255.00</td>
+    </tr>
+    <tr>
+        <td>Egresos</td>
+        <td class="r" th:text="'- S/ ' + ${#numbers.formatDecimal(t.egresos, 1, 'COMMA', 2, 'POINT')}">- S/ 376.50</td>
+    </tr>
+</table>
+<div class="hr"></div>
+<table>
+    <tr class="b">
+        <td>EFECTIVO ESPERADO</td>
+        <td class="r" th:text="'S/ ' + ${#numbers.formatDecimal(t.efectivoEsperado, 1, 'COMMA', 2, 'POINT')}">S/ 73.50</td>
+    </tr>
+    <tr class="b">
+        <td>EFECTIVO CONTADO</td>
+        <td class="r" th:text="'S/ ' + ${#numbers.formatDecimal(t.efectivoContado, 1, 'COMMA', 2, 'POINT')}">S/ 0.00</td>
+    </tr>
+</table>
+
+<!-- ================= DIFERENCIA ================= -->
+<div class="caja-diferencia">
+    <div class="sm b">DIFERENCIA</div>
+    <div class="lg b" th:text="'S/ ' + ${#numbers.formatDecimal(t.diferencia, 1, 'COMMA', 2, 'POINT')}">S/ -73.50</div>
+    <div class="sm b" th:text="${t.etiquetaDiferencia}">*** FALTANTE EN CAJA ***</div>
+</div>
+
+<!-- ================= DETALLE DE DENOMINACIONES ================= -->
+<div th:if="${not #lists.isEmpty(t.denominaciones)}">
+    <div class="hr-d"></div>
+    <div class="seccion">DETALLE DEL CONTEO</div>
+    <table>
+        <tr th:each="d : ${t.denominaciones}">
+            <td th:text="'S/ ' + ${#numbers.formatDecimal(d.valor, 1, 'COMMA', 2, 'POINT')}">S/ 100.00</td>
+            <td class="c" th:text="'x ' + ${d.cantidad}">x 2</td>
+            <td class="r" th:text="${#numbers.formatDecimal(d.subtotal, 1, 'COMMA', 2, 'POINT')}">200.00</td>
+        </tr>
+    </table>
+</div>
+
+<!-- ================= OBSERVACIONES ================= -->
+<div th:if="${t.observaciones != null and !t.observaciones.isEmpty()}">
+    <div class="hr-d"></div>
+    <div class="seccion">OBSERVACIONES</div>
+    <div class="obs" th:text="${t.observaciones}">Sin observaciones.</div>
+</div>
+
+<!-- ================= FIRMAS ================= -->
+<table class="firma">
+    <tr>
+        <td class="c sm" width="50%">Cajero</td>
+        <td class="c sm" width="50%">Supervisor</td>
+    </tr>
+</table>
+
+<div class="hr-d"></div>
+<div class="c sm" th:text="'Emitido: ' + ${t.fechaEmision}">Emitido: 05/08/2026 03:44 PM</div>
+<div class="c sm">Documento interno - no valido como comprobante de pago</div>
+
+</body>
+</html>
