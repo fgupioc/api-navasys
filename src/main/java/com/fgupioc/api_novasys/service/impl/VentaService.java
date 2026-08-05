@@ -62,6 +62,12 @@ public class VentaService implements IVentaService {
             if (ventaReqDTO.getUuid() != null) {
                 return actualizar(ventaReqDTO.getUuid(), ventaReqDTO, authentication);
             } else {
+                UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
+                if (principal == null) {
+                    throw new ResourceNotFoundException("Usuario no autenticado");
+                }
+                Almacen almacen = almacenRepository.findById(principal.branchId())
+                        .orElseThrow(() -> new ResourceNotFoundException("Almacén no encontrado: " + principal.branchId()));
                 CajaRespDTO caja = usuarioService.miCajaActiva(authentication);
                 CajaSesion cajaSesion = cajaSesionRepository.findById(caja.getCajaSesion().getCajaSesionId())
                         .orElseThrow(() -> new ResourceNotFoundException("Caja no encontrada con UUID: " + caja.getUuid()));
@@ -103,6 +109,9 @@ public class VentaService implements IVentaService {
                     detalle.setDiscount(detail.getDiscount());
                     detalle.setSubtotal(detail.getUnitPrice().multiply(BigDecimal.valueOf(detail.getQuantity())).subtract(detail.getDiscount()));
                     ventaDetalleRepository.save(detalle);
+                    if (ventaReqDTO.getCodStatus().equals(Venta.STATUS_COMPLETADA)) {
+                        inventarioMovimientoRepository.restarStock(almacen.getId(), producto.getId(), detail.getQuantity());
+                    }
                 }
 
                 if (ventaReqDTO.getPagos() != null && !ventaReqDTO.getPagos().isEmpty()) {
@@ -176,7 +185,21 @@ public class VentaService implements IVentaService {
                 detalle.setDiscount(detail.getDiscount());
                 detalle.setSubtotal(detail.getUnitPrice().multiply(BigDecimal.valueOf(detail.getQuantity())).subtract(detail.getDiscount()));
                 ventaDetalleRepository.save(detalle);
-                inventarioMovimientoRepository.restarStock(almacen.getId(), producto.getId(), detail.getQuantity());
+                if (ventaReqDTO.getCodStatus().equals(Venta.STATUS_COMPLETADA)) {
+                    inventarioMovimientoRepository.restarStock(almacen.getId(), producto.getId(), detail.getQuantity());
+                }
+            }
+            if (ventaReqDTO.getCodStatus().equals(Venta.STATUS_COMPLETADA)) {
+                if (ventaReqDTO.getPagos() != null && !ventaReqDTO.getPagos().isEmpty()) {
+                    for (var pagoReq : ventaReqDTO.getPagos()) {
+                        VentaPago pago = new VentaPago();
+                        pago.setSale(savedVenta);
+                        pago.setMethod(pagoReq.getMethod());
+                        pago.setAmount(pagoReq.getAmount());
+                        pago.setReference("");
+                        ventaPagoRepository.save(pago);
+                    }
+                }
             }
 
             log.info("Venta actualizada con éxito: {}", savedVenta.getId());
@@ -416,6 +439,10 @@ public class VentaService implements IVentaService {
             List<IVentasDiarias> ventas = ventaRepository.findVentasDiarias(miCaja.getCajaSesion().getCajaSesionId());
 
             IVentaTotales totales = ventaRepository.obtenerMontosTotales(miCaja.getCajaSesion().getCajaSesionId());
+
+            BigDecimal totalMedios = totales.getTotalEfectivo().add(totales.getTotalYape());
+            BigDecimal efectivoEsperado = cajaSesionDB.getOpeningAmount().add(totalMedios).add(cajaSesionDB.getCashInAmount()).subtract(cajaSesionDB.getCashOutAmount());
+
             CajaSesionRespDTO cajaSesion = new CajaSesionRespDTO();
             cajaSesion.setSalesCount(ventas.size()); // Ventas
             cajaSesion.setCollectionsAmount(cajaSesionDB.getCollectionsAmount()); // Cobros
@@ -428,7 +455,7 @@ public class VentaService implements IVentaService {
             cajaSesion.setCashInAmount(cajaSesionDB.getCashInAmount()); // Ingresos
             cajaSesion.setCashOutAmount(cajaSesionDB.getCashOutAmount()); // Egresos
             cajaSesion.setCashSalesAmount(totales.getTotalEfectivo()); // Ventas en efectivo
-            cajaSesion.setExpectedCashAmount(cajaSesionDB.getExpectedCashAmount()); // Efectivo esperado
+            cajaSesion.setExpectedCashAmount(efectivoEsperado); // Efectivo esperado
             cajaSesion.setCountedCashAmount(cajaSesionDB.getCountedCashAmount()); // Efectivo contado
             cajaSesion.setCashDifferenceAmount(cajaSesionDB.getCashDifferenceAmount()); // Diferencia
             cajaSesion.setCajaSesionId(miCaja.getCajaSesion().getCajaSesionId());
