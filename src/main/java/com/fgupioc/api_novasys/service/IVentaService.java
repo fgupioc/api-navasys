@@ -29,11 +29,4 @@ public interface IVentaService {
 
     TicketDTO getItemParTicket(UUID uuid) throws RuntimeException;
 
-    List<CajaRespDTO> listarCajasPorAlmacen(Authentication authentication) throws RuntimeException;
-
-    void abrirCaja(CajaSesionReqDTO cajaSesion, Authentication authentication) throws RuntimeException;
-
-    void registrarCierreCaja(CajaSesionReqDTO cajaSesion, Authentication authentication) throws RuntimeException;
-
-    CajaSesionRespDTO obtenerInfoParaCierreCaja(Authentication authentication) throws RuntimeException;
 }

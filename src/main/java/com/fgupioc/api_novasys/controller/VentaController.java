@@ -57,28 +57,5 @@ public class VentaController {
         ventaService.eliminar(uuid);
         return ResponseEntity.ok(ApiResponse.success("Venta eliminada exitosamente.", null));
     }
-
-    @GetMapping("/listar-mis-cajas-por-almacen")
-    public ResponseEntity<?> listarMisCajasPorAlmacen(Authentication authentication) {
-        return ResponseEntity.ok(ApiResponse.success(ventaService.listarCajasPorAlmacen(authentication)));
-    }
-
-    @PostMapping("/abrir-caja")
-    public ResponseEntity<?> abrirCaja(@RequestBody CajaSesionReqDTO cajaSesion, Authentication authentication) {
-        ventaService.abrirCaja(cajaSesion, authentication);
-        return ResponseEntity.ok(ApiResponse.success("Caja abierta exitosamente.", null));
-    }
-
-    @PutMapping("/registrar-cierre-caja")
-    public ResponseEntity<?> registrarCierreCaja(@RequestBody CajaSesionReqDTO cajaSesion, Authentication authentication) {
-        ventaService.registrarCierreCaja(cajaSesion, authentication);
-        return ResponseEntity.ok(ApiResponse.success("Cierre de caja registrado exitosamente.", null));
-    }
-
-    @GetMapping("/obtener-info-para-cierre-caja")
-    public ResponseEntity<?> obtenerInfoParaCierreCaja(Authentication authentication) {
-        CajaSesionRespDTO cajaSesion = ventaService.obtenerInfoParaCierreCaja(authentication);
-        return ResponseEntity.ok(ApiResponse.success("Cierre de caja registrado exitosamente.", cajaSesion));
-    }
 }
 
