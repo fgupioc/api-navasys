@@ -38,7 +38,6 @@ public class VentaReqDTO {
     private BigDecimal tax;
     private BigDecimal taxApplied;
     private BigDecimal total;
-    private UUID cashRegister;
     private List<VentaDetalleReqDTO> productos = new ArrayList<>();
     private List<VentaPagoReqDTO> pagos = new ArrayList<>();
 

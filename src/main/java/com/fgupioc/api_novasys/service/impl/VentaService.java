@@ -4,8 +4,11 @@ import com.fgupioc.api_novasys.dtos.*;
 import com.fgupioc.api_novasys.helpers.ResourceNotFoundException;
 import com.fgupioc.api_novasys.models.*;
 import com.fgupioc.api_novasys.models.enums.EstadoSesionCaja;
+import com.fgupioc.api_novasys.models.interfaces.IVentaTotales;
+import com.fgupioc.api_novasys.models.interfaces.IVentasDiarias;
 import com.fgupioc.api_novasys.models.interfaces.VentaListado;
 import com.fgupioc.api_novasys.repository.*;
+import com.fgupioc.api_novasys.service.IUsuarioService;
 import com.fgupioc.api_novasys.service.IVentaService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -45,6 +48,7 @@ public class VentaService implements IVentaService {
     private final CajaRepository cajaRepository;
     private final CajaSesionRepository cajaSesionRepository;
     private final UserRepository userRepository;
+    private final IUsuarioService usuarioService;
 
     @Override
     public List<VentaListado> filtrarVentas(LocalDate desde, LocalDate hasta, Long customerId, String codStatus) throws RuntimeException {
@@ -58,13 +62,14 @@ public class VentaService implements IVentaService {
             if (ventaReqDTO.getUuid() != null) {
                 return actualizar(ventaReqDTO.getUuid(), ventaReqDTO, authentication);
             } else {
-                Caja caja = cajaRepository.findByUuid(ventaReqDTO.getCashRegister())
-                        .orElseThrow(() -> new ResourceNotFoundException("Caja no encontrada con UUID: " + ventaReqDTO.getCashRegister()));
+                CajaRespDTO caja = usuarioService.miCajaActiva(authentication);
+                CajaSesion cajaSesion = cajaSesionRepository.findById(caja.getCajaSesion().getCajaSesionId())
+                        .orElseThrow(() -> new ResourceNotFoundException("Caja no encontrada con UUID: " + caja.getUuid()));
                 Venta venta = ventaReqDTO.toEntity();
                 Cliente cliente = clienteRepository.findById(ventaReqDTO.getCustomerId())
                         .orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado con ID: " + ventaReqDTO.getCustomerId()));
                 venta.setCustomer(cliente);
-                venta.setCaja(caja);
+                venta.setCajaSesion(cajaSesion);
                 Long count = ventaRepository.count();
                 String code = "VEN" + String.format("%06d", count + 1);
                 venta.setCode(code);
@@ -286,7 +291,7 @@ public class VentaService implements IVentaService {
                 venta.getSubtotal(), venta.getTax(), venta.getTotal(),
                 venta.getTotal(), bd("0.00"),
                 metodoPago,
-                venta.getCaja().getCode()
+                venta.getCajaSesion().getCaja().getCode()
         );
     }
 
@@ -304,7 +309,7 @@ public class VentaService implements IVentaService {
                 .orElseThrow(() -> new ResourceNotFoundException("Almacén no encontrado: " + principal.branchId()));
         return cajaRepository.listaCajasPorAlmacen(almacen)
                 .stream()
-                .map(caja -> new CajaRespDTO( caja.getUuid(), caja.getCode(), caja.getName(), caja.getDescription(), caja.getStatus()))
+                .map(caja -> new CajaRespDTO(caja.getUuid(), caja.getCode(), caja.getName(), caja.getDescription(), caja.getStatus()))
                 .toList();
     }
 
@@ -332,6 +337,19 @@ public class VentaService implements IVentaService {
             cajaSesionEntity.setClosingAmount(BigDecimal.ZERO);
             cajaSesionEntity.setStatus(EstadoSesionCaja.OPEN);
             cajaSesionEntity.setNotes("");
+            cajaSesionEntity.setSalesCount(0);
+            cajaSesionEntity.setCollectionsAmount(BigDecimal.ZERO);
+            cajaSesionEntity.setMovementsCount(0);
+            cajaSesionEntity.setPhysicalCashAmount(BigDecimal.ZERO);
+            cajaSesionEntity.setExecutiveCashAmount(BigDecimal.ZERO);
+            cajaSesionEntity.setDigitalWalletAmount(BigDecimal.ZERO);
+            cajaSesionEntity.setTotalPaymentsAmount(BigDecimal.ZERO);
+            cajaSesionEntity.setCashInAmount(BigDecimal.ZERO);
+            cajaSesionEntity.setCashOutAmount(BigDecimal.ZERO);
+            cajaSesionEntity.setCashSalesAmount(BigDecimal.ZERO);
+            cajaSesionEntity.setExpectedCashAmount(BigDecimal.ZERO);
+            cajaSesionEntity.setCountedCashAmount(BigDecimal.ZERO);
+            cajaSesionEntity.setCashDifferenceAmount(BigDecimal.ZERO);
 
             cajaSesionRepository.save(cajaSesionEntity);
         } catch (RuntimeException e) {
@@ -364,10 +382,63 @@ public class VentaService implements IVentaService {
             cajaSesionEntity.setStatus(EstadoSesionCaja.CLOSED);
             cajaSesionEntity.setNotes(cajaSesion.getNotes());
 
+            cajaSesionEntity.setOpeningAmount(cajaSesion.getOpeningAmount());
+            cajaSesionEntity.setSalesCount(cajaSesion.getSalesCount());
+            cajaSesionEntity.setCollectionsAmount(cajaSesion.getCollectionsAmount());
+            cajaSesionEntity.setMovementsCount(cajaSesion.getMovementsCount());
+            cajaSesionEntity.setPhysicalCashAmount(cajaSesion.getPhysicalCashAmount());
+            cajaSesionEntity.setExecutiveCashAmount(cajaSesion.getExecutiveCashAmount());
+            cajaSesionEntity.setDigitalWalletAmount(cajaSesion.getDigitalWalletAmount());
+            cajaSesionEntity.setTotalPaymentsAmount(cajaSesion.getTotalPaymentsAmount());
+            cajaSesionEntity.setCashInAmount(cajaSesion.getCashInAmount());
+            cajaSesionEntity.setCashOutAmount(cajaSesion.getCashOutAmount());
+            cajaSesionEntity.setCashSalesAmount(cajaSesion.getCashSalesAmount());
+            cajaSesionEntity.setExpectedCashAmount(cajaSesion.getExpectedCashAmount());
+            cajaSesionEntity.setCountedCashAmount(cajaSesion.getCountedCashAmount());
+            cajaSesionEntity.setCashDifferenceAmount(cajaSesion.getCashDifferenceAmount());
+
             cajaSesionRepository.save(cajaSesionEntity);
         } catch (RuntimeException e) {
             log.error("Error al registrar el cierre de la caja: {}", e.getMessage());
             throw e;
+        }
+    }
+
+    @Override
+    public CajaSesionRespDTO obtenerInfoParaCierreCaja(Authentication authentication) throws RuntimeException {
+        try {
+            CajaRespDTO miCaja = usuarioService.miCajaActiva(authentication);
+            Caja caja = cajaRepository.findByUuid(miCaja.getUuid())
+                    .orElseThrow(() -> new ResourceNotFoundException("Caja no encontrada: " + miCaja.getUuid()));
+
+            CajaSesion cajaSesionDB = cajaSesionRepository.findById(miCaja.getCajaSesion().getCajaSesionId()).orElseThrow(() -> new ResourceNotFoundException("No hay una sesión de caja abierta para esta caja."));
+
+            List<IVentasDiarias> ventas = ventaRepository.findVentasDiarias(miCaja.getCajaSesion().getCajaSesionId());
+
+            IVentaTotales totales = ventaRepository.obtenerMontosTotales(miCaja.getCajaSesion().getCajaSesionId());
+            CajaSesionRespDTO cajaSesion = new CajaSesionRespDTO();
+            cajaSesion.setSalesCount(ventas.size()); // Ventas
+            cajaSesion.setCollectionsAmount(cajaSesionDB.getCollectionsAmount()); // Cobros
+            cajaSesion.setMovementsCount(cajaSesionDB.getMovementsCount()); // Movimientos
+            cajaSesion.setPhysicalCashAmount(cajaSesionDB.getPhysicalCashAmount()); // Efectivo en caja física
+            cajaSesion.setExecutiveCashAmount(totales.getTotalEfectivo()); // Efectivo
+            cajaSesion.setDigitalWalletAmount(totales.getTotalYape()); // Yape/Plin
+            cajaSesion.setTotalPaymentsAmount(totales.getTotalGeneral()); // Total pagos
+            cajaSesion.setOpeningAmount(cajaSesionDB.getOpeningAmount()); // Fondo inicial
+            cajaSesion.setCashInAmount(cajaSesionDB.getCashInAmount()); // Ingresos
+            cajaSesion.setCashOutAmount(cajaSesionDB.getCashOutAmount()); // Egresos
+            cajaSesion.setCashSalesAmount(totales.getTotalEfectivo()); // Ventas en efectivo
+            cajaSesion.setExpectedCashAmount(cajaSesionDB.getExpectedCashAmount()); // Efectivo esperado
+            cajaSesion.setCountedCashAmount(cajaSesionDB.getCountedCashAmount()); // Efectivo contado
+            cajaSesion.setCashDifferenceAmount(cajaSesionDB.getCashDifferenceAmount()); // Diferencia
+            cajaSesion.setCajaSesionId(miCaja.getCajaSesion().getCajaSesionId());
+            cajaSesion.setCajaUuid(caja.getUuid());
+            cajaSesion.setClosingAmount(cajaSesionDB.getClosingAmount()); //
+            cajaSesion.setNotes(cajaSesionDB.getNotes());
+
+            return cajaSesion;
+        } catch (RuntimeException e) {
+            throw new RuntimeException(e);
         }
     }
 }

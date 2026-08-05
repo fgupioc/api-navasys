@@ -34,4 +34,6 @@ public interface IVentaService {
     void abrirCaja(CajaSesionReqDTO cajaSesion, Authentication authentication) throws RuntimeException;
 
     void registrarCierreCaja(CajaSesionReqDTO cajaSesion, Authentication authentication) throws RuntimeException;
+
+    CajaSesionRespDTO obtenerInfoParaCierreCaja(Authentication authentication) throws RuntimeException;
 }

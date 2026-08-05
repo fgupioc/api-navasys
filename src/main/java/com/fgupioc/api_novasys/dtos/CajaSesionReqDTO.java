@@ -28,14 +28,17 @@ public class CajaSesionReqDTO {
     private String notes;
 
     private Long cajaSesionId;
-    private BigDecimal ventas;
-    private BigDecimal cobros;
-    private BigDecimal movimientos;
-    private BigDecimal montoYape;
-    private BigDecimal montoMixto;
-    private BigDecimal ingresos;
-    private BigDecimal egresos;
-    private BigDecimal ventasEfectivo;
-    private BigDecimal montoEfectivo;
-    private BigDecimal fondoInicial;
+    private Integer salesCount;
+    private BigDecimal collectionsAmount;
+    private Integer movementsCount;
+    private BigDecimal physicalCashAmount;
+    private BigDecimal executiveCashAmount;
+    private BigDecimal digitalWalletAmount;
+    private BigDecimal totalPaymentsAmount;
+    private BigDecimal cashInAmount;
+    private BigDecimal cashOutAmount;
+    private BigDecimal cashSalesAmount;
+    private BigDecimal expectedCashAmount;
+    private BigDecimal countedCashAmount;
+    private BigDecimal cashDifferenceAmount;
 }

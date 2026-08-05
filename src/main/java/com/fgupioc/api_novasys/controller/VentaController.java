@@ -1,6 +1,7 @@
 package com.fgupioc.api_novasys.controller;
 
 import com.fgupioc.api_novasys.dtos.CajaSesionReqDTO;
+import com.fgupioc.api_novasys.dtos.CajaSesionRespDTO;
 import com.fgupioc.api_novasys.dtos.VentaReqDTO;
 import com.fgupioc.api_novasys.helpers.ApiResponse;
 import com.fgupioc.api_novasys.service.IVentaService;
@@ -72,6 +73,12 @@ public class VentaController {
     public ResponseEntity<?> registrarCierreCaja(@RequestBody CajaSesionReqDTO cajaSesion, Authentication authentication) {
         ventaService.registrarCierreCaja(cajaSesion, authentication);
         return ResponseEntity.ok(ApiResponse.success("Cierre de caja registrado exitosamente.", null));
+    }
+
+    @GetMapping("/obtener-info-para-cierre-caja")
+    public ResponseEntity<?> obtenerInfoParaCierreCaja(Authentication authentication) {
+        CajaSesionRespDTO cajaSesion = ventaService.obtenerInfoParaCierreCaja(authentication);
+        return ResponseEntity.ok(ApiResponse.success("Cierre de caja registrado exitosamente.", cajaSesion));
     }
 }
 

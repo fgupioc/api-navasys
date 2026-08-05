@@ -47,4 +47,17 @@ public class CajaSesion extends BaseEntity {
     private EstadoSesionCaja status;
     @Column(length = 501)
     private String notes;
+    private Integer salesCount;
+    private BigDecimal collectionsAmount;
+    private Integer movementsCount;
+    private BigDecimal physicalCashAmount;
+    private BigDecimal executiveCashAmount;
+    private BigDecimal digitalWalletAmount;
+    private BigDecimal totalPaymentsAmount;
+    private BigDecimal cashInAmount;
+    private BigDecimal cashOutAmount;
+    private BigDecimal cashSalesAmount;
+    private BigDecimal expectedCashAmount;
+    private BigDecimal countedCashAmount;
+    private BigDecimal cashDifferenceAmount;
 }

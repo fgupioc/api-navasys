@@ -1,6 +1,8 @@
 package com.fgupioc.api_novasys.repository;
 
 import com.fgupioc.api_novasys.models.Venta;
+import com.fgupioc.api_novasys.models.interfaces.IVentaTotales;
+import com.fgupioc.api_novasys.models.interfaces.IVentasDiarias;
 import com.fgupioc.api_novasys.models.interfaces.VentaListado;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -51,7 +53,8 @@ public interface VentaRepository extends JpaRepository<Venta, Long> {
                ca.code as cashRegister
                 from ventas v
             inner join clientes c on v.customer_id = c.id
-            inner join cajas ca on v.caja_id = ca.id
+            inner join caja_sesion cs on cs.id = v.caja_sesion_id
+            inner join cajas ca on cs.cash_register_id = ca.id
             INNER JOIN maestro ms ON ms.tabla_id = 4 AND ms.codigo = v.cod_status
             left JOIN maestro mp ON mp.tabla_id = 5 AND mp.codigo = v.payment_method
             where (:desde is null or v.sale_date >= :desde)
@@ -70,4 +73,35 @@ public interface VentaRepository extends JpaRepository<Venta, Long> {
 
     @Query("select count (v) from Venta v where v.documentType = :documentType ")
     Long countByDocumentType(@Param("documentType") String documentType);
+
+    @Query(value = """
+            select
+                v.id,
+                v.payment_method as method,
+                v.total,
+                coalesce(sum(case when vp.method = '1' then vp.amount end), 0) as efectivo,
+                coalesce(sum(case when vp.method = '4' then vp.amount end), 0) as yape
+            from ventas v
+                     left join venta_pagos vp on v.id = vp.sale_id
+            where v.caja_sesion_id = :cajaSesionId
+              and v.cod_status = '1'
+              and v.deleted_at is null
+            group by v.id, v.payment_method, v.total
+            order by v.id;
+            """, nativeQuery = true)
+    List<IVentasDiarias> findVentasDiarias(@Param("cajaSesionId") Long cajaSesionId);
+
+    @Query(value = """
+            select
+                coalesce(sum(case when vp.method = '1' then vp.amount end), 0) as totalEfectivo,
+                coalesce(sum(case when vp.method = '4' then vp.amount end), 0) as totalYape,
+                coalesce(sum(vp.amount), 0) as totalGeneral
+            from ventas v
+                     inner join venta_pagos vp on v.id = vp.sale_id
+            where v.caja_sesion_id = :cajaSesionId
+              and v.cod_status = '1'
+              and v.deleted_at is null
+            limit 1
+            """, nativeQuery = true)
+    IVentaTotales obtenerMontosTotales(@Param("cajaSesionId") Long cajaSesionId);
 }
