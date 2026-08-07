@@ -82,7 +82,8 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
                    pp.sale_price,
                    pp.price_type,
                    im.cod_status,
-                   ms.nombre           as status
+                   ms.nombre           as status,
+                               pi.url
             from inventario_movimiento im
                      inner join almacenes a on a.id = im.warehouse_id
                      inner join productos p on p.id = im.product_id
@@ -91,6 +92,13 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
                      left join categorias sc on sc.id = p.subcategory_id
                      left join producto_precios pp on pp.producto_id = p.id and pp.price_type = 'SALE' and pp.almacen_id = a.id
                      inner join maestro ms on ms.tabla_id = 1 and ms.codigo = im.cod_status
+                         left join lateral (
+                         select pi2.url
+                         from producto_imagenes pi2
+                         where pi2.producto_id = p.id and pi2.es_principal = 1
+                         order by pi2.id
+                         limit 1
+                     ) pi on true
             where im.reference_type = 'PURCHASE'
               and BIN_TO_UUID(a.uuid) = :almacenUuid
             """, nativeQuery = true)

@@ -20,4 +20,5 @@ public interface IProductoAlmacenList {
     Long getUnitId();
     String getStatus();
     String getCodStatus();
+    String getUrl();
 }
