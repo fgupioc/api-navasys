@@ -42,6 +42,9 @@ public class Venta extends BaseEntity {
     @Column(unique = true, nullable = false, length = 20)
     private String code;
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customer_id", nullable = false)
     private Cliente customer;
     private String documentType;

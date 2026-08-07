@@ -49,6 +49,10 @@ public class Compra extends BaseEntity {
     @JoinColumn(name = "warehouse_id", nullable = false)
     private Almacen almacen;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
+
     @Column(name = "purchase_date", nullable = false)
     private LocalDate purchaseDate;
 
