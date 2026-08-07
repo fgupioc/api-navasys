@@ -4,6 +4,7 @@ import com.fgupioc.api_novasys.dtos.*;
 import com.fgupioc.api_novasys.helpers.ResourceNotFoundException;
 import com.fgupioc.api_novasys.models.*;
 import com.fgupioc.api_novasys.models.enums.EstadoSesionCaja;
+import com.fgupioc.api_novasys.models.interfaces.ITicketCierreCaja;
 import com.fgupioc.api_novasys.models.interfaces.IVentaTotales;
 import com.fgupioc.api_novasys.models.interfaces.IVentasDiarias;
 import com.fgupioc.api_novasys.models.interfaces.VentaListado;
@@ -47,6 +48,7 @@ public class VentaService implements IVentaService {
     private final InventarioMovimientoRepository inventarioMovimientoRepository;
     private final CajaSesionRepository cajaSesionRepository;
     private final IUsuarioService usuarioService;
+    private final TiendaRepository tiendaRepository;
 
     @Override
     public List<VentaListado> filtrarVentas(LocalDate desde, LocalDate hasta, Long customerId, String codStatus) throws RuntimeException {
@@ -294,14 +296,14 @@ public class VentaService implements IVentaService {
                 clienteDocumento = "";
             }
         }
-
+        Tienda tienda = this.getMyTienda();
         String metodoPago = maestroRepository
                 .findByTablaIdAndCodigo(5, venta.getPaymentMethod())
                 .map(Maestro::getNombre)
                 .orElse("");
 
         return new TicketDTO(
-                "MINIMARKET NOVASYS",
+                tienda.getName(),
                 "TICKET DE VENTA",
                 venta.getDocumentSeries() + "-" + venta.getDocumentNumber(),
                 venta.getCode(),
@@ -318,5 +320,156 @@ public class VentaService implements IVentaService {
 
     private static BigDecimal bd(String v) {
         return new BigDecimal(v);
+    }
+
+    @Override
+    public TicketCierreCajaData getInfoParaCierre(Long id) throws RuntimeException {
+        ITicketCierreCaja info = cajaSesionRepository.findTicketCierreCajaById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Cierre de caja no encontrado con ID: " + id));
+
+        IVentaTotales totales = ventaRepository.obtenerMontosTotales(id);
+        return fillDataTicket(id, info, totales);
+    }
+
+    public TicketCierreCajaData fillDataTicket(Long id, ITicketCierreCaja info, IVentaTotales total) {
+        int year = info.getCreatedAt().getYear();
+        Tienda tienda = this.getMyTienda();
+
+        return new TicketCierreCajaData(
+                // --- cabecera ---
+                tienda.getName(),
+                tienda.getBusinessName(),
+                tienda.getRuc(),
+                tienda.getAddress(),
+                String.format("CIE-%d-%09d", year, id),
+
+                // --- caja ---
+                info.getCashRegisterName(),
+                info.getCashRegisterDescription(),
+                info.getOpenedAt(),
+                info.getClosedAt(),
+                info.getHoras(),
+
+                // --- responsable ---
+                info.getUserName(),
+                info.getUserDocument(),
+                info.getUserRole(),
+                info.getTurno(),
+
+                // --- ventas ---
+                info.getSalesCount(),
+                info.getTotalPaymentsAmount(),
+                List.of(
+                        new TicketCierreCajaData.MedioPago("Efectivo", total.getTotalEfectivo()),
+                        new TicketCierreCajaData.MedioPago("Yape/Plin", total.getTotalYape())
+                ),
+
+                // --- arqueo ---
+                info.getOpeningAmount(),   // fondo inicial
+                info.getExecutiveCashAmount(),    // ventas en efectivo
+                info.getCashInAmount(),   // ingresos
+                info.getCashOutAmount(),   // egresos (positivo, la plantilla antepone el signo)
+                info.getExpectedCashAmount(),    // efectivo esperado
+                info.getCountedCashAmount(),     // efectivo contado
+                info.getCashDifferenceAmount(),   // diferencia
+                List.of(),                  // sin conteo -> la seccion no se imprime
+
+                info.getNotes(),
+                info.getReportGeneratedAt()
+        );
+    }
+
+    public TicketCierreCajaData conFaltante() {
+        return new TicketCierreCajaData(
+                // --- cabecera ---
+                "NOVASYS MARKET",
+                "Comercial Nova S.A.C.",
+                "20123456789",
+                "Jr. Amazonas 450 - Chachapoyas",
+                "CIE-2026-000123",
+
+                // --- caja ---
+                "Caja 01 - Principal",
+                "Sucursal Principal",
+                "05/08/2026 08:59 AM",
+                "05/08/2026 03:44 PM",
+                "6 h 45 min",
+
+                // --- responsable ---
+                "Milagros Quispe Alvarado",
+                "30000001",
+                "CAJERO",
+                "Turno Mañana",
+
+                // --- ventas ---
+                4,
+                new BigDecimal("59.50"),
+                List.of(
+                        new TicketCierreCajaData.MedioPago("Efectivo", new BigDecimal("45.00")),
+                        new TicketCierreCajaData.MedioPago("Yape/Plin", new BigDecimal("14.50"))
+                ),
+
+                // --- arqueo ---
+                new BigDecimal("150.00"),   // fondo inicial
+                new BigDecimal("45.00"),    // ventas en efectivo
+                new BigDecimal("255.00"),   // ingresos
+                new BigDecimal("376.50"),   // egresos (positivo, la plantilla antepone el signo)
+                new BigDecimal("73.50"),    // efectivo esperado
+                new BigDecimal("0.00"),     // efectivo contado
+                new BigDecimal("-73.50"),   // diferencia
+                List.of(),                  // sin conteo -> la seccion no se imprime
+
+                "Cajero cerro sin registrar el conteo de denominaciones. Pendiente de regularizar con supervisor.",
+                "05/08/2026 03:44 PM"
+        );
+    }
+
+    /** Variante con arqueo completo: contado = esperado -> caja cuadrada. */
+    public TicketCierreCajaData cuadrada() {
+        TicketCierreCajaData base = conFaltante();
+        return new TicketCierreCajaData(
+                base.nombreComercial(),
+                base.razonSocial(),
+                base.ruc(),
+                base.direccionSucursal(),
+                "CIE-2026-000124",
+                base.caja(),
+                base.sucursal(),
+                base.fechaApertura(),
+                base.fechaCierre(),
+                base.duracion(),
+                base.usuarioNombre(),
+                base.usuarioDocumento(),
+                base.usuarioRol(),
+                base.turno(),
+                base.cantidadVentas(),
+                base.totalVentas(),
+                base.mediosPago(),
+                base.fondoInicial(),
+                base.ventasEfectivo(),
+                base.ingresos(),
+                base.egresos(),
+                new BigDecimal("73.50"),
+                new BigDecimal("73.50"),
+                BigDecimal.ZERO,
+                List.of(
+                        den("50.00", 1),
+                        den("20.00", 1),
+                        den("2.00", 1),
+                        den("1.00", 1),
+                        den("0.50", 1)
+                ),
+                null,                       // sin observaciones -> la seccion no se imprime
+                base.fechaEmision()
+        );
+    }
+
+    private TicketCierreCajaData.Denominacion den(String valor, int cantidad) {
+        BigDecimal v = new BigDecimal(valor);
+        return new TicketCierreCajaData.Denominacion(v, cantidad, v.multiply(BigDecimal.valueOf(cantidad)));
+    }
+
+    private Tienda getMyTienda() {
+        return tiendaRepository.findById(1L).orElseThrow(() -> new RuntimeException("Tienda no encontrada"));
     }
 }

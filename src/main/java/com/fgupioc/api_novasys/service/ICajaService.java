@@ -1,8 +1,10 @@
 package com.fgupioc.api_novasys.service;
 
 import com.fgupioc.api_novasys.dtos.*;
+import com.fgupioc.api_novasys.models.interfaces.ICajaCierreList;
 import org.springframework.security.core.Authentication;
 
+import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -28,4 +30,8 @@ public interface ICajaService {
     void eliminarCajaMovimiento(Long cajaMovimientoId, Authentication authentication) throws RuntimeException;
 
     List<CajaMovimientoMotivoRespDTO> listarMotivosMovimientoCaja() throws RuntimeException;
+
+    List<ICajaCierreList> listarCierresCajaPorUsuario(Authentication authentication, LocalDate desde, LocalDate hasta, Long cajaId, String codStatus) throws RuntimeException;
+
+    List<CajaRespDTO> listarCajas(Authentication authentication) throws RuntimeException;
 }

@@ -29,4 +29,5 @@ public interface IVentaService {
 
     TicketDTO getItemParTicket(UUID uuid) throws RuntimeException;
 
+    TicketCierreCajaData getInfoParaCierre(Long id) throws RuntimeException;
 }

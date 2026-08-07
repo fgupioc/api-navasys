@@ -2,7 +2,9 @@ package com.fgupioc.api_novasys.service;
 
 import com.fgupioc.api_novasys.dtos.TicketCierreCajaData;
 import com.fgupioc.api_novasys.dtos.TicketDTO;
+import com.fgupioc.api_novasys.dtos.TicketResp;
 import com.fgupioc.api_novasys.helpers.BarcodeUtil;
+import com.fgupioc.api_novasys.service.impl.VentaService;
 import com.openhtmltopdf.extend.FSSupplier;
 import com.openhtmltopdf.outputdevice.helper.BaseRendererBuilder;
 import com.openhtmltopdf.pdfboxout.PdfBoxRenderer;
@@ -24,10 +26,13 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.util.List;
 import java.util.Locale;
+import java.util.UUID;
 
 
 /**
@@ -40,6 +45,8 @@ import java.util.Locale;
 @Service
 @RequiredArgsConstructor
 public class TicketPdfService {
+    private final VentaService ventaService;
+
     private static final float MM_A_PT = 72f / 25.4f;
     private static final float ANCHO_MM_80 = 80f;
     private static final float ANCHO_MM_58 = 58f;
@@ -60,21 +67,25 @@ public class TicketPdfService {
     /**
      * Punto de entrada: renderiza en un lienzo largo y luego recorta al contenido.
      */
-    public byte[] generar58(TicketDTO t) {
-        byte[] crudo = render(t, ALTO_TMP, ANCHO_MM_58, "ticket58");
-        return recortar(crudo, ANCHO_MM_58);
+    public TicketResp generar58(UUID uuid) {
+        TicketDTO dto = ventaService.getItemParTicket(uuid);
+        byte[] crudo = render(dto, ALTO_TMP, ANCHO_MM_58, "ticket58");
+        byte[] pdf = recortar(crudo, ANCHO_MM_58);
+        return new TicketResp(dto.serieCorrelativo() + ".pdf", pdf);
     }
-
 
     /**
      * Punto de entrada: renderiza en un lienzo largo y luego recorta al contenido.
      */
-    public byte[] generar80(TicketDTO t) {
-        byte[] crudo = render(t, ALTO_TMP, ANCHO_MM_80, "ticket80");
-        return recortar(crudo, ANCHO_MM_80);
+    public TicketResp generar80(UUID uuid) {
+        TicketDTO dto = ventaService.getItemParTicket(uuid);
+        byte[] crudo = render(dto, ALTO_TMP, ANCHO_MM_80, "ticket80");
+        byte[] pdf = recortar(crudo, ANCHO_MM_80);
+        return new TicketResp(dto.serieCorrelativo() + ".pdf", pdf);
     }
 
-    public byte[] generarCierre(TicketCierreCajaData data) {
+    public TicketResp generarCierre(Long id) {
+        TicketCierreCajaData data = this.ventaService.getInfoParaCierre(id);
         Context ctx = new Context();
         ctx.setVariable("t", data);
         String html = templateEngine.process("cierreCaja58", ctx);
@@ -82,12 +93,13 @@ public class TicketPdfService {
         float alturaMm = medirAlturaMm(html);
         try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             renderizar(html, alturaMm, out);
-            return out.toByteArray();
+            byte[] pdf = out.toByteArray();
+
+            return new TicketResp("cierre-caja.pdf", pdf);
         } catch (Exception e) {
             throw new IllegalStateException("No se pudo generar el ticket de cierre de caja", e);
         }
     }
-
 
     /**
      * Renderiza el HTML a PDF con una altura de página dada (en mm).
@@ -172,7 +184,6 @@ public class TicketPdfService {
         return new DecimalFormat("0.##", DecimalFormatSymbols.getInstance(Locale.US)).format(v);
     }
 
-
     /**
      * Primer pase: se maqueta el documento en una pagina muy alta y se lee la altura
      * real del contenido, para emitir un ticket continuo sin papel en blanco.
@@ -212,11 +223,9 @@ public class TicketPdfService {
         builder.withW3cDocument(new W3CDom().fromJsoup(jsoupDoc), "/");
 
         // Fuente monoespaciada embebida (colocar el .ttf en resources/fonts/).
-        builder.useFont(
-                () -> getClass().getResourceAsStream("/fonts/JetBrainsMono-Regular.ttf"),
+        builder.useFont(() -> getClass().getResourceAsStream("/fonts/JetBrainsMono-Regular.ttf"),
                 "TicketMono", 400, PdfRendererBuilder.FontStyle.NORMAL, true);
-        builder.useFont(
-                () -> getClass().getResourceAsStream("/fonts/JetBrainsMono-Bold.ttf"),
+        builder.useFont(() -> getClass().getResourceAsStream("/fonts/JetBrainsMono-Bold.ttf"),
                 "TicketMono", 700, PdfRendererBuilder.FontStyle.NORMAL, true);
 
         return builder;

@@ -10,6 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+
 /**
  * @author fgupioc - FRANZ
  * @version 1.0
@@ -27,6 +29,12 @@ public class CajaController {
     public ResponseEntity<?> listarMisCajasPorAlmacen(Authentication authentication) {
         return ResponseEntity.ok(ApiResponse.success(cajaService.listarCajasPorAlmacen(authentication)));
     }
+
+    @GetMapping("/listar-cajas")
+        public ResponseEntity<?> listarCajas(Authentication authentication) {
+        return ResponseEntity.ok(ApiResponse.success(cajaService.listarCajas(authentication)));
+    }
+
 
     @PostMapping("/abrir-caja")
     public ResponseEntity<?> abrirCaja(@RequestBody CajaSesionReqDTO cajaSesion, Authentication authentication) {
@@ -67,5 +75,14 @@ public class CajaController {
     @GetMapping("/listar-motivos-movimiento-caja")
     public ResponseEntity<?> listarMotivosMovimientoCaja() {
         return ResponseEntity.ok(ApiResponse.success(cajaService.listarMotivosMovimientoCaja()));
+    }
+
+    @GetMapping("/listar-cierres-caja-por-usuario")
+    public ResponseEntity<?> listarCierresCajaPorUsuario(@RequestParam(required = false) LocalDate desde,
+                                                         @RequestParam(required = false) LocalDate hasta,
+                                                         @RequestParam(required = false) Long cajaId,
+                                                         @RequestParam(required = false) String codStatus,
+                                                         Authentication authentication) {
+        return ResponseEntity.ok(ApiResponse.success(cajaService.listarCierresCajaPorUsuario(authentication, desde, hasta, cajaId, codStatus)));
     }
 }

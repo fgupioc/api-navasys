@@ -19,6 +19,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @Builder
 public class CajaRespDTO {
+    private Long id;
     private UUID uuid;
     private String code;
     private String name;
@@ -27,6 +28,15 @@ public class CajaRespDTO {
     private CajaSesionRespDTO cajaSesion;
 
     public CajaRespDTO(UUID uuid, String code, String name, String description, EstadoSesionCaja status) {
+        this.uuid = uuid;
+        this.code = code;
+        this.name = name;
+        this.description = description;
+        this.status = status;
+    }
+
+    public CajaRespDTO(Long id, UUID uuid, String code, String name, String description, EstadoSesionCaja status) {
+        this.id = id;
         this.uuid = uuid;
         this.code = code;
         this.name = name;

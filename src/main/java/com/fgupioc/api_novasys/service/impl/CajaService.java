@@ -5,6 +5,7 @@ import com.fgupioc.api_novasys.helpers.ResourceNotFoundException;
 import com.fgupioc.api_novasys.models.*;
 import com.fgupioc.api_novasys.models.enums.EstadoSesionCaja;
 import com.fgupioc.api_novasys.models.enums.TipoMovimientoCaja;
+import com.fgupioc.api_novasys.models.interfaces.ICajaCierreList;
 import com.fgupioc.api_novasys.models.interfaces.IVentaTotales;
 import com.fgupioc.api_novasys.models.interfaces.IVentasDiarias;
 import com.fgupioc.api_novasys.repository.*;
@@ -16,6 +17,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -262,6 +264,24 @@ public class CajaService implements ICajaService {
                         motivo.getActive(),
                         motivo.getSortOrder()
                 ))
+                .toList();
+    }
+
+    @Override
+    public List<ICajaCierreList> listarCierresCajaPorUsuario(Authentication authentication, LocalDate desde, LocalDate hasta, Long cajaId, String codStatus) throws RuntimeException {
+        UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
+        if (principal == null) {
+            throw new ResourceNotFoundException("Usuario no autenticado");
+        }
+
+        return cajaSesionRepository.findAllCajaCierreListByUserId(principal.id(), desde, hasta, cajaId, codStatus);
+    }
+
+    @Override
+    public List<CajaRespDTO> listarCajas(Authentication authentication) throws RuntimeException {
+        return cajaRepository.findAll()
+                .stream()
+                .map(caja -> new CajaRespDTO(caja.getId(), caja.getUuid(), caja.getCode(), caja.getName(), caja.getDescription(), caja.getStatus()))
                 .toList();
     }
 }
