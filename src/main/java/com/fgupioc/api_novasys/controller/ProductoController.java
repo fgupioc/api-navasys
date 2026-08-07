@@ -124,4 +124,9 @@ public class ProductoController {
     public ResponseEntity<?> buscarAutocompletado(@RequestParam(required = false) String term) {
         return ResponseEntity.ok(ApiResponse.success(productoService.buscarAutocompletado(term)));
     }
+
+    @GetMapping("buscar-producto-por-almacen/{almacenId}")
+    public ResponseEntity<?> obtenerKardexProductoInfoByProductoId(@PathVariable Long almacenId, @RequestParam Long productId) {
+        return ResponseEntity.ok(ApiResponse.success(productoService.obtenerKardexProductoInfoByProductoId(productId, almacenId)));
+    }
 }

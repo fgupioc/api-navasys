@@ -152,17 +152,20 @@ public class CompraService implements ICompraService {
                 purchaseDetail.setSubtotal(detail.unitCost().multiply(BigDecimal.valueOf(detail.quantity())).subtract(detail.discount()));
 
                 compraDetalleRepository.save(purchaseDetail);
+                InventarioMovimiento movimiento =  new InventarioMovimiento();
+                movimiento.setInitialQuantity(0.0);
+                movimiento.setCurrentQuantity(0.0);
 
                 if (compraRespDTO.codStatus().equalsIgnoreCase("5")) {
-                    InventarioMovimiento movement = new InventarioMovimiento();
-
+                    InventarioMovimiento movement = inventarioMovimientoRepository.findByProductoAndAlmacenAndInventarioMovimientoTipo(producto, almacen, InventarioMovimientoTipo.PURCHASE_IN)
+                            .orElse(movimiento);
                     movement.setProducto(producto);
                     movement.setAlmacen(compraDB.getAlmacen());
                     movement.setTipoMovimiento(InventarioMovimientoTipo.PURCHASE_IN);
                     movement.setTipoReferencia(InventarioReferenciaTipo.PURCHASE);
                     movement.setReferenceId(purchaseDetail.getId());
-                    movement.setInitialQuantity(detail.quantity());
-                    movement.setCurrentQuantity(detail.quantity());
+                    movement.setInitialQuantity(detail.quantity() + movement.getInitialQuantity());
+                    movement.setCurrentQuantity(detail.quantity() +  movement.getCurrentQuantity());
                     movement.setUnitCost(detail.unitCost());
                     movement.setSalePrice(detail.salePrice());
                     movement.setDiscount(detail.discount());
@@ -179,7 +182,11 @@ public class CompraService implements ICompraService {
                                     newProductoPrecio.setProducto(producto);
                                     newProductoPrecio.setAlmacen(almacen);
                                     newProductoPrecio.setPriceType(tipoPrecio);
-                                    newProductoPrecio.setCodStatus(CONST.STATUS_ACTIVE);
+                                    if (tipoPrecio.equals(TipoPreciosTipo.SALE)) {
+                                        newProductoPrecio.setCodStatus(CONST.STATUS_ACTIVE);
+                                    } else {
+                                        newProductoPrecio.setCodStatus(CONST.STATUS_INACTIVE);
+                                    }
                                     newProductoPrecio.setMinimumQuantity(1);
                                     return newProductoPrecio;
                                 });

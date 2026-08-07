@@ -9,10 +9,7 @@ import com.fgupioc.api_novasys.helpers.CONST;
 import com.fgupioc.api_novasys.helpers.ResourceNotFoundException;
 import com.fgupioc.api_novasys.models.*;
 import com.fgupioc.api_novasys.models.enums.TipoPreciosTipo;
-import com.fgupioc.api_novasys.models.interfaces.IProductoAlmacenList;
-import com.fgupioc.api_novasys.models.interfaces.IProductoPOS;
-import com.fgupioc.api_novasys.models.interfaces.ProductoAlmacen;
-import com.fgupioc.api_novasys.models.interfaces.ProductoAutocompledado;
+import com.fgupioc.api_novasys.models.interfaces.*;
 import com.fgupioc.api_novasys.repository.*;
 import com.fgupioc.api_novasys.service.IImagenStorageService;
 import com.fgupioc.api_novasys.service.IProductoService;
@@ -24,8 +21,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -298,5 +293,11 @@ public class ProductoService implements IProductoService {
         Almacen almacen = almacenRepository.findById(principal.branchId())
                 .orElseThrow(() -> new ResourceNotFoundException("Almacén no encontrado: " + principal.branchId()));
         return productoRepository.findProductosPOSByAlmacenId(almacen.getUuid());
+    }
+
+    @Override
+    public IKardexProductoInfo obtenerKardexProductoInfoByProductoId(Long productoId, Long almacenId) throws RuntimeException {
+        return inventarioMovimientoRepository.obtenerKardexProductoInfoByProductoId(productoId, almacenId)
+                .orElseThrow(() -> new ResourceNotFoundException("Kardex no encontrado para el producto: " + productoId + " en el almacén: " + almacenId));
     }
 }

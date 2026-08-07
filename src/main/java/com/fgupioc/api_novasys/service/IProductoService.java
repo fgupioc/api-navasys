@@ -3,6 +3,7 @@ package com.fgupioc.api_novasys.service;
 import com.fgupioc.api_novasys.dtos.ProductoReqDTO;
 import com.fgupioc.api_novasys.dtos.ProductoRespDTO;
 import com.fgupioc.api_novasys.models.Producto;
+import com.fgupioc.api_novasys.models.interfaces.IKardexProductoInfo;
 import com.fgupioc.api_novasys.models.interfaces.IProductoAlmacenList;
 import com.fgupioc.api_novasys.models.interfaces.IProductoPOS;
 import com.fgupioc.api_novasys.models.interfaces.ProductoAutocompledado;
@@ -39,4 +40,6 @@ public interface IProductoService {
     void activarAlmacen(Long id) throws RuntimeException;
 
     List<IProductoPOS> listarProductosPOS(Authentication authentication) throws RuntimeException;
+
+    IKardexProductoInfo obtenerKardexProductoInfoByProductoId(Long productoId, Long almacenId) throws RuntimeException;
 }
