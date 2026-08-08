@@ -129,4 +129,9 @@ public class ProductoController {
     public ResponseEntity<?> obtenerKardexProductoInfoByProductoId(@PathVariable Long almacenId, @RequestParam Long productId) {
         return ResponseEntity.ok(ApiResponse.success(productoService.obtenerKardexProductoInfoByProductoId(productId, almacenId)));
     }
+
+    @GetMapping("buscar-historial-kardex/{almacenId}")
+    public ResponseEntity<?> obtenerHistorialKardexByProductoId(@PathVariable Long almacenId, @RequestParam Long productId) {
+        return ResponseEntity.ok(ApiResponse.success(productoService.obtenerHistorialKardexByProductoId(productId, almacenId)));
+    }
 }

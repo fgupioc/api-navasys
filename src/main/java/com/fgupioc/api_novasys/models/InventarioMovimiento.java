@@ -5,8 +5,6 @@ import com.fgupioc.api_novasys.models.enums.InventarioMovimientoTipo;
 import com.fgupioc.api_novasys.models.enums.InventarioReferenciaTipo;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.SQLDelete;
-import org.hibernate.annotations.SQLRestriction;
 
 import java.math.BigDecimal;
 
@@ -27,17 +25,13 @@ public class InventarioMovimiento {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    /**
-     * Producto
-     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
     private Producto producto;
 
-    /**
-     * Almacén
-     */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "warehouse_id", nullable = false)
     private Almacen almacen;
@@ -51,25 +45,46 @@ public class InventarioMovimiento {
     private InventarioReferenciaTipo tipoReferencia;
 
     /**
-     * Id de la compra, venta, transferencia...
+     * ID de la operación:
+     * compra, venta, transferencia, ajuste...
      */
     @Column(name = "reference_id", nullable = false)
     private Long referenceId;
 
     /**
-     * Positivo = Entrada
-     * Negativo = Salida
+     * Cantidad del movimiento.
+     * <p>
+     * Ejemplo:
+     * Compra = +20
+     * Venta  = -5
      */
-    private Double initialQuantity;
-    private Double currentQuantity;
+    @Column(nullable = false)
+    private BigDecimal quantity;
 
     /**
-     * Costo unitario del movimiento
+     * Stock existente antes del movimiento.
      */
-    private BigDecimal unitCost;
-    private BigDecimal salePrice;
+    @Column(name = "stock_before", nullable = false)
+    private BigDecimal stockBefore;
 
-    private BigDecimal discount;
+    /**
+     * Stock resultante después del movimiento.
+     */
+    @Column(name = "stock_after", nullable = false)
+    private BigDecimal stockAfter;
+
+    /**
+     * Costo unitario del movimiento.
+     */
+    @Column(name = "unit_cost", precision = 12, scale = 2)
+    private BigDecimal unitCost;
+
+    /**
+     * Precio de venta utilizado en la operación,
+     * si corresponde.
+     */
+    @Column(name = "sale_price", precision = 12, scale = 2)
+    private BigDecimal salePrice;
 
     private String codStatus;
 

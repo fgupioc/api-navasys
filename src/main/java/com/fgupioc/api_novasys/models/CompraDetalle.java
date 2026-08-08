@@ -43,7 +43,7 @@ public class CompraDetalle {
     /**
      * Cantidad comprada
      */
-    private Double quantity;
+    private BigDecimal quantity;
 
     /**
      * Costo unitario

@@ -19,6 +19,8 @@ public interface IKardexProductoInfo {
 
     Double getInitialQuantity();
 
+    Double getTotalEntries();
+
     Double getCurrentQuantity();
 
     BigDecimal getSalePrice();

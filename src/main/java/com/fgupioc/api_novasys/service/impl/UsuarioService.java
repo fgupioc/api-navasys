@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author fgupioc - FRANZ
@@ -179,5 +180,10 @@ public class UsuarioService implements UserDetailsService, IUsuarioService {
                                 .build()
                         ).build())
                 .orElseThrow(() -> new ResourceNotFoundException("No hay caja activa para el usuario"));
+    }
+
+    @Override
+    public Optional<User> findById(Long id) throws RuntimeException {
+        return userRepository.findById(id);
     }
 }

@@ -21,12 +21,12 @@ import java.math.BigDecimal;
 public class VentaDetalleReqDTO {
     private Long productoId;
     private String productName;
-    private Double quantity;
+    private BigDecimal quantity;
     private BigDecimal unitPrice;
     private BigDecimal discount;
     private BigDecimal subtotal;
 
     public BigDecimal getTotal() {
-        return unitPrice.multiply(BigDecimal.valueOf(quantity)).subtract(discount != null ? discount : BigDecimal.ZERO);
+        return unitPrice.multiply(quantity).subtract(discount != null ? discount : BigDecimal.ZERO);
     }
 }

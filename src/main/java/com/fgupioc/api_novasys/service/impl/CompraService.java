@@ -5,6 +5,7 @@ import com.fgupioc.api_novasys.dtos.CompraReqDTO;
 import com.fgupioc.api_novasys.dtos.CompraRespDTO;
 import com.fgupioc.api_novasys.dtos.mappers.CompraMapper;
 import com.fgupioc.api_novasys.helpers.CONST;
+import com.fgupioc.api_novasys.helpers.ResourceNotFoundException;
 import com.fgupioc.api_novasys.models.*;
 import com.fgupioc.api_novasys.models.enums.InventarioMovimientoTipo;
 import com.fgupioc.api_novasys.models.enums.InventarioReferenciaTipo;
@@ -15,6 +16,7 @@ import com.fgupioc.api_novasys.service.ICompraService;
 import com.fgupioc.api_novasys.service.OrdenCompraPdfService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +24,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -43,12 +46,21 @@ public class CompraService implements ICompraService {
     private final InventarioMovimientoRepository inventarioMovimientoRepository;
     private final ProductoRepository productoRepository;
     private final ProductoPrecioRepository productoPrecioRepository;
+    private final InventarioStockRepository inventarioStockRepository;
+    private final UserRepository userRepository;
     private final OrdenCompraPdfService ordenCompraPdfService;
 
     @Override
     @Transactional
-    public CompraRespDTO registrarCompra(CompraReqDTO compraRespDTO) throws RuntimeException {
+    public CompraRespDTO registrarCompra(CompraReqDTO compraRespDTO, Authentication authentication) throws RuntimeException {
         try {
+            UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
+            if (principal == null) {
+                throw new ResourceNotFoundException("Usuario no autenticado");
+            }
+            User user = userRepository.findById(principal.id())
+                    .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con ID: " + principal.id()));
+
             Long count = compraRepository.count();
             String code = "COM" + String.format("%06d", count + 1);
             Compra compra = compraMapper.toRespEntity(compraRespDTO);
@@ -64,6 +76,7 @@ public class CompraService implements ICompraService {
             compra.setCode(code);
             compra.setAlmacen(almacen);
             compra.setProveedor(proveedor);
+            compra.setUser(user);
             compra.setDiscount(new BigDecimal("0"));
             compra.setTax(igv);
             compra.setSubtotal(subtotal);
@@ -84,7 +97,7 @@ public class CompraService implements ICompraService {
                 purchaseDetail.setUnitCost(detail.unitCost());
                 purchaseDetail.setSalePrice(detail.salePrice());
                 purchaseDetail.setDiscount(detail.discount());
-                purchaseDetail.setSubtotal(detail.unitCost().multiply(BigDecimal.valueOf(detail.quantity())).subtract(detail.discount()));
+                purchaseDetail.setSubtotal(detail.unitCost().multiply(detail.quantity()).subtract(detail.discount()));
 
                 compraDetalleRepository.save(purchaseDetail);
 
@@ -97,8 +110,15 @@ public class CompraService implements ICompraService {
 
     @Override
     @Transactional
-    public CompraRespDTO actualizarCompra(UUID uuid, CompraReqDTO compraRespDTO) throws RuntimeException {
+    public CompraRespDTO actualizarCompra(UUID uuid, CompraReqDTO compraRespDTO, Authentication authentication) throws RuntimeException {
         try {
+            UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
+            if (principal == null) {
+                throw new ResourceNotFoundException("Usuario no autenticado");
+            }
+            User user = userRepository.findById(principal.id())
+                    .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con ID: " + principal.id()));
+
             Compra compraDB = compraRepository.findByUuid(uuid)
                     .orElseThrow(() -> new RuntimeException("Compra no encontrada"));
 
@@ -113,6 +133,7 @@ public class CompraService implements ICompraService {
 
             compraDB.setProveedor(proveedor);
             compraDB.setAlmacen(almacen);
+            compraDB.setUser(user);
             compraDB.setPurchaseDate(compraRespDTO.purchaseDate());
             compraDB.setDocumentSeries(compraRespDTO.documentSeries());
             compraDB.setDocumentNumber(compraRespDTO.documentNumber());
@@ -128,14 +149,12 @@ public class CompraService implements ICompraService {
             compraDB.setTaxApplied(new BigDecimal("0.18"));
             compraDB.setCodStatus(compraRespDTO.codStatus());
 
-            Compra save = compraRepository.save(compraDB);
-
             List<CompraDetalle> detalles = compraDetalleRepository.findByCompra(compraDB);
             if (compraRespDTO.codStatus().equalsIgnoreCase("5")) {
-                for (CompraDetalle detalle : detalles) {
-                    inventarioMovimientoRepository.deleteAllByReferenceId(detalle.getId());
-                }
+                compraDetalleRepository.deleteAll(detalles);
             }
+
+            Compra save = compraRepository.save(compraDB);
 
             compraDetalleRepository.deleteAll(detalles);
             for (CompraProducto detail : compraRespDTO.products()) {
@@ -149,28 +168,48 @@ public class CompraService implements ICompraService {
                 purchaseDetail.setUnitCost(detail.unitCost());
                 purchaseDetail.setSalePrice(detail.salePrice());
                 purchaseDetail.setDiscount(detail.discount());
-                purchaseDetail.setSubtotal(detail.unitCost().multiply(BigDecimal.valueOf(detail.quantity())).subtract(detail.discount()));
+                purchaseDetail.setSubtotal(detail.unitCost().multiply(detail.quantity()).subtract(detail.discount()));
 
                 compraDetalleRepository.save(purchaseDetail);
-                InventarioMovimiento movimiento =  new InventarioMovimiento();
-                movimiento.setInitialQuantity(0.0);
-                movimiento.setCurrentQuantity(0.0);
 
                 if (compraRespDTO.codStatus().equalsIgnoreCase("5")) {
-                    InventarioMovimiento movement = inventarioMovimientoRepository.findByProductoAndAlmacenAndInventarioMovimientoTipo(producto, almacen, InventarioMovimientoTipo.PURCHASE_IN)
-                            .orElse(movimiento);
+                    Optional<InventarioMovimiento> exist = inventarioMovimientoRepository.findLastByProductoAndAlmacen(producto, compraDB.getAlmacen());
+                    InventarioMovimiento movement =  new InventarioMovimiento();
+                    movement.setId(null);
+                    movement.setUser(user);
                     movement.setProducto(producto);
                     movement.setAlmacen(compraDB.getAlmacen());
                     movement.setTipoMovimiento(InventarioMovimientoTipo.PURCHASE_IN);
                     movement.setTipoReferencia(InventarioReferenciaTipo.PURCHASE);
-                    movement.setReferenceId(purchaseDetail.getId());
-                    movement.setInitialQuantity(detail.quantity() + movement.getInitialQuantity());
-                    movement.setCurrentQuantity(detail.quantity() +  movement.getCurrentQuantity());
+                    movement.setReferenceId(save.getId());
+                    if (exist.isPresent()) {
+                        movement.setStockBefore(exist.get().getStockAfter());
+                        movement.setStockAfter(detail.quantity().add(exist.get().getStockAfter()));
+                    } else {
+                        movement.setStockBefore(BigDecimal.ZERO);
+                        movement.setStockAfter(detail.quantity());
+                    }
+                    movement.setQuantity(detail.quantity());
                     movement.setUnitCost(detail.unitCost());
                     movement.setSalePrice(detail.salePrice());
-                    movement.setDiscount(detail.discount());
 
                     inventarioMovimientoRepository.save(movement);
+                    InventarioStock stock = new InventarioStock();
+                    stock.setId(null);
+                    stock.setQuantity(BigDecimal.ZERO);
+                    stock.setLastCost(BigDecimal.ZERO);
+
+                    InventarioStock inventarioStock = inventarioStockRepository.findByProductoAndAlmacen(producto, almacen).orElse(stock);
+
+                    inventarioStock.setProducto(producto);
+                    inventarioStock.setAlmacen(almacen);
+                    inventarioStock.setAverageCost(calcularCostoPromedio(inventarioStock.getQuantity(), inventarioStock.getLastCost(), detail.quantity(), detail.unitCost()));
+                    inventarioStock.setQuantity(inventarioStock.getQuantity().add(detail.quantity()));
+                    inventarioStock.setLastCost(inventarioStock.getLastCost());
+                    inventarioStock.setCodStatus(CONST.STATUS_ACTIVE);
+                    inventarioStock.setInitialQuantity(movement.getStockBefore());
+                    inventarioStockRepository.save(inventarioStock);
+
                     List<ProductoPrecio> productoPrecioDB = productoPrecioRepository.findAllByProductoAndAlmacen(producto, almacen);
                     List<TipoPreciosTipo> tiposPrecios = List.of(TipoPreciosTipo.REGULAR, TipoPreciosTipo.WHOLESALE, TipoPreciosTipo.SALE);
                     for (TipoPreciosTipo tipoPrecio : tiposPrecios) {
@@ -200,6 +239,47 @@ public class CompraService implements ICompraService {
         } catch (RuntimeException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private BigDecimal calcularCostoPromedio(
+            BigDecimal stockActual,
+            BigDecimal costoActual,
+            BigDecimal cantidadEntrada,
+            BigDecimal costoEntrada) {
+
+        if (stockActual == null) {
+            stockActual = BigDecimal.ZERO;
+        }
+
+        if (costoActual == null) {
+            costoActual = BigDecimal.ZERO;
+        }
+
+        if (cantidadEntrada == null || cantidadEntrada.compareTo(BigDecimal.ZERO) <= 0) {
+            return costoActual;
+        }
+
+        if (costoEntrada == null) {
+            costoEntrada = BigDecimal.ZERO;
+        }
+
+        BigDecimal valorStockActual =
+                stockActual.multiply(costoActual);
+
+        BigDecimal valorNuevaCompra =
+                cantidadEntrada.multiply(costoEntrada);
+
+        BigDecimal valorTotal =
+                valorStockActual.add(valorNuevaCompra);
+
+        BigDecimal cantidadTotal =
+                stockActual.add(cantidadEntrada);
+
+        return valorTotal.divide(
+                cantidadTotal,
+                4,
+                RoundingMode.HALF_UP
+        );
     }
 
     @Override

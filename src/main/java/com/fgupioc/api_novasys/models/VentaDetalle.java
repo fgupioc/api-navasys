@@ -41,7 +41,7 @@ public class VentaDetalle {
     /**
      * Cantidad comprada
      */
-    private Double quantity;
+    private BigDecimal quantity;
     /**
      * Costo unitario
      */

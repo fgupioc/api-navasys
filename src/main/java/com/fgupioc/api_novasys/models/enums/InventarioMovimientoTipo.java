@@ -7,12 +7,12 @@ package com.fgupioc.api_novasys.models.enums;
  * @since 24/07/2026
  */
 public enum InventarioMovimientoTipo {
-    PURCHASE_IN,
-    PURCHASE_RETURN,
-    SALE_OUT,
-    SALE_RETURN,
-    TRANSFER_IN,
-    TRANSFER_OUT,
-    ADJUSTMENT_IN,
-    ADJUSTMENT_OUT
+    PURCHASE_IN, // Compra
+    PURCHASE_RETURN, // Devolución de compra
+    SALE_OUT, // Venta
+    SALE_RETURN, // Devolución de venta
+    TRANSFER_IN, // Transferencia entrante
+    TRANSFER_OUT, // Transferencia saliente
+    ADJUSTMENT_IN, // Ajuste entrante
+    ADJUSTMENT_OUT // Ajuste saliente
 }

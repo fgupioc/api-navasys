@@ -3,10 +3,7 @@ package com.fgupioc.api_novasys.service;
 import com.fgupioc.api_novasys.dtos.ProductoReqDTO;
 import com.fgupioc.api_novasys.dtos.ProductoRespDTO;
 import com.fgupioc.api_novasys.models.Producto;
-import com.fgupioc.api_novasys.models.interfaces.IKardexProductoInfo;
-import com.fgupioc.api_novasys.models.interfaces.IProductoAlmacenList;
-import com.fgupioc.api_novasys.models.interfaces.IProductoPOS;
-import com.fgupioc.api_novasys.models.interfaces.ProductoAutocompledado;
+import com.fgupioc.api_novasys.models.interfaces.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -42,4 +39,6 @@ public interface IProductoService {
     List<IProductoPOS> listarProductosPOS(Authentication authentication) throws RuntimeException;
 
     IKardexProductoInfo obtenerKardexProductoInfoByProductoId(Long productoId, Long almacenId) throws RuntimeException;
+
+    List<IHistorialKardex> obtenerHistorialKardexByProductoId(Long productoId, Long almacenId) throws RuntimeException;
 }

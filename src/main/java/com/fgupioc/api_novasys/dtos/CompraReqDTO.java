@@ -34,6 +34,6 @@ public record CompraReqDTO(
 ) {
 
     public BigDecimal calcularTotal() {
-        return products.stream().reduce(BigDecimal.ZERO, (subtotal1, product) -> subtotal1.add(product.unitCost().multiply(BigDecimal.valueOf(product.quantity()))), BigDecimal::add);
+        return products.stream().reduce(BigDecimal.ZERO, (subtotal1, product) -> subtotal1.add(product.unitCost().multiply(product.quantity())), BigDecimal::add);
     }
 }

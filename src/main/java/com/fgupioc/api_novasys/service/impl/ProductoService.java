@@ -300,4 +300,9 @@ public class ProductoService implements IProductoService {
         return inventarioMovimientoRepository.obtenerKardexProductoInfoByProductoId(productoId, almacenId)
                 .orElseThrow(() -> new ResourceNotFoundException("Kardex no encontrado para el producto: " + productoId + " en el almacén: " + almacenId));
     }
+
+    @Override
+    public List<IHistorialKardex> obtenerHistorialKardexByProductoId(Long productoId, Long almacenId) throws RuntimeException {
+        return inventarioMovimientoRepository.findAllHistorialKardexByProductoIdAndAlmacenId(productoId, almacenId);
+    }
 }

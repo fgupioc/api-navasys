@@ -20,7 +20,7 @@ public class ItemDetalleDTO {
     private String codigo;
     private String descripcion;
     private String unidad;
-    private Double cantidad;
+    private BigDecimal cantidad;
     private BigDecimal precioUnit;
     private BigDecimal subtotal;
 }

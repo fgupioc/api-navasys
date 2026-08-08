@@ -4,6 +4,8 @@ import com.fgupioc.api_novasys.dtos.*;
 import com.fgupioc.api_novasys.helpers.ResourceNotFoundException;
 import com.fgupioc.api_novasys.models.*;
 import com.fgupioc.api_novasys.models.enums.EstadoSesionCaja;
+import com.fgupioc.api_novasys.models.enums.InventarioMovimientoTipo;
+import com.fgupioc.api_novasys.models.enums.InventarioReferenciaTipo;
 import com.fgupioc.api_novasys.models.interfaces.ITicketCierreCaja;
 import com.fgupioc.api_novasys.models.interfaces.IVentaTotales;
 import com.fgupioc.api_novasys.models.interfaces.IVentasDiarias;
@@ -49,6 +51,7 @@ public class VentaService implements IVentaService {
     private final CajaSesionRepository cajaSesionRepository;
     private final IUsuarioService usuarioService;
     private final TiendaRepository tiendaRepository;
+    private final InventarioStockRepository inventarioStockRepository;
 
     @Override
     public List<VentaListado> filtrarVentas(LocalDate desde, LocalDate hasta, Long customerId, String codStatus) throws RuntimeException {
@@ -66,6 +69,9 @@ public class VentaService implements IVentaService {
                 if (principal == null) {
                     throw new ResourceNotFoundException("Usuario no autenticado");
                 }
+                User user = usuarioService.findById(principal.id())
+                        .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con ID: " + principal.id()));
+
                 Almacen almacen = almacenRepository.findById(principal.branchId())
                         .orElseThrow(() -> new ResourceNotFoundException("Almacén no encontrado: " + principal.branchId()));
                 CajaRespDTO caja = usuarioService.miCajaActiva(authentication);
@@ -75,6 +81,7 @@ public class VentaService implements IVentaService {
                 Cliente cliente = clienteRepository.findById(ventaReqDTO.getCustomerId())
                         .orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado con ID: " + ventaReqDTO.getCustomerId()));
                 venta.setCustomer(cliente);
+                venta.setUser(user);
                 venta.setCajaSesion(cajaSesion);
                 Long count = ventaRepository.count();
                 String code = "VEN" + String.format("%06d", count + 1);
@@ -107,10 +114,29 @@ public class VentaService implements IVentaService {
                     detalle.setQuantity(detail.getQuantity());
                     detalle.setUnitPrice(detail.getUnitPrice());
                     detalle.setDiscount(detail.getDiscount());
-                    detalle.setSubtotal(detail.getUnitPrice().multiply(BigDecimal.valueOf(detail.getQuantity())).subtract(detail.getDiscount()));
+                    detalle.setSubtotal(detail.getUnitPrice().multiply(detail.getQuantity()).subtract(detail.getDiscount()));
                     ventaDetalleRepository.save(detalle);
                     if (ventaReqDTO.getCodStatus().equals(Venta.STATUS_COMPLETADA)) {
-                        inventarioMovimientoRepository.restarStock(almacen.getId(), producto.getId(), detail.getQuantity());
+                        // inventarioStockRepository.restarStock(almacen.getId(), producto.getId(), detail.getQuantity());
+                        InventarioStock inventarioStock = inventarioStockRepository.findByAlmacenAndProducto(almacen, producto)
+                                .orElseThrow(() -> new ResourceNotFoundException("Inventario no encontrado"));
+
+                        InventarioMovimiento movement =  new InventarioMovimiento();
+                        movement.setProducto(producto);
+                        movement.setAlmacen(almacen);
+                        movement.setTipoMovimiento(InventarioMovimientoTipo.SALE_OUT);
+                        movement.setTipoReferencia(InventarioReferenciaTipo.SALE);
+                        movement.setReferenceId(savedVenta.getId());
+                        movement.setStockBefore(inventarioStock.getQuantity());
+                        movement.setStockAfter(inventarioStock.getQuantity().subtract(detail.getQuantity()));
+                        movement.setQuantity(detail.getQuantity());
+                        movement.setUnitCost(detail.getUnitPrice());
+                        movement.setSalePrice(detail.getUnitPrice());
+                        movement.setUser(user);
+                        inventarioMovimientoRepository.save(movement);
+
+                        inventarioStock.setQuantity(movement.getStockAfter());
+                        inventarioStockRepository.save(inventarioStock);
                     }
                 }
 
@@ -144,6 +170,10 @@ public class VentaService implements IVentaService {
             if (principal == null) {
                 throw new ResourceNotFoundException("Usuario no autenticado");
             }
+
+            User user = usuarioService.findById(principal.id())
+                    .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con ID: " + principal.id()));
+
             Almacen almacen = almacenRepository.findById(principal.branchId())
                     .orElseThrow(() -> new ResourceNotFoundException("Almacén no encontrado: " + principal.branchId()));
 
@@ -152,6 +182,7 @@ public class VentaService implements IVentaService {
             Cliente cliente = clienteRepository.findById(ventaReqDTO.getCustomerId())
                     .orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado con ID: " + ventaReqDTO.getCustomerId()));
             venta.setCustomer(cliente);
+            venta.setUser(user);
             venta.setDocumentType(ventaReqDTO.getDocumentType());
             venta.setDocumentSeries(ventaReqDTO.getDocumentSeries());
             venta.setDocumentNumber(ventaReqDTO.getDocumentNumber());
@@ -183,10 +214,29 @@ public class VentaService implements IVentaService {
                 detalle.setQuantity(detail.getQuantity());
                 detalle.setUnitPrice(detail.getUnitPrice());
                 detalle.setDiscount(detail.getDiscount());
-                detalle.setSubtotal(detail.getUnitPrice().multiply(BigDecimal.valueOf(detail.getQuantity())).subtract(detail.getDiscount()));
+                detalle.setSubtotal(detail.getUnitPrice().multiply(detail.getQuantity()).subtract(detail.getDiscount()));
                 ventaDetalleRepository.save(detalle);
                 if (ventaReqDTO.getCodStatus().equals(Venta.STATUS_COMPLETADA)) {
-                    inventarioMovimientoRepository.restarStock(almacen.getId(), producto.getId(), detail.getQuantity());
+                    InventarioStock inventarioStock = inventarioStockRepository.findByAlmacenAndProducto(almacen, producto)
+                            .orElseThrow(() -> new ResourceNotFoundException("Inventario no encontrado"));
+
+                    InventarioMovimiento movement =  new InventarioMovimiento();
+                    movement.setProducto(producto);
+                    movement.setAlmacen(almacen);
+                    movement.setTipoMovimiento(InventarioMovimientoTipo.SALE_OUT);
+                    movement.setTipoReferencia(InventarioReferenciaTipo.SALE);
+                    movement.setReferenceId(savedVenta.getId());
+                    movement.setStockBefore(inventarioStock.getQuantity());
+                    movement.setStockAfter(inventarioStock.getQuantity().subtract(detail.getQuantity()));
+                    movement.setQuantity(detail.getQuantity());
+                    movement.setUnitCost(detail.getUnitPrice());
+                    movement.setSalePrice(detail.getUnitPrice());
+                    movement.setUser(user);
+
+                    inventarioMovimientoRepository.save(movement);
+
+                    inventarioStock.setQuantity(movement.getStockAfter());
+                    inventarioStockRepository.save(inventarioStock);
                 }
             }
             if (ventaReqDTO.getCodStatus().equals(Venta.STATUS_COMPLETADA)) {
@@ -282,7 +332,7 @@ public class VentaService implements IVentaService {
                     detalle.getProductName(),
                     bd(detalle.getQuantity().toString()),
                     detalle.getUnitPrice(),
-                    bd((detalle.getQuantity() * detalle.getUnitPrice().doubleValue()) + "")
+                    bd(detalle.getQuantity().multiply(detalle.getUnitPrice()).toString())
             ));
         }
 

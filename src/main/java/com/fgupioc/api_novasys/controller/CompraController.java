@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -40,13 +41,13 @@ public class CompraController {
     }
 
     @PostMapping("/registrar")
-    public ResponseEntity<?> registrarCompra(@RequestBody CompraReqDTO compraReqDTO) {
-        return ResponseEntity.ok(ApiResponse.success(compraService.registrarCompra(compraReqDTO)));
+    public ResponseEntity<?> registrarCompra(@RequestBody CompraReqDTO compraReqDTO, Authentication authentication) {
+        return ResponseEntity.ok(ApiResponse.success(compraService.registrarCompra(compraReqDTO, authentication)));
     }
 
     @PutMapping("/actualizar/{uuid}")
-    public ResponseEntity<?> actualizarCompra(@PathVariable UUID uuid, @RequestBody CompraReqDTO compraReqDTO) {
-        return ResponseEntity.ok(ApiResponse.success(compraService.actualizarCompra(uuid, compraReqDTO)));
+    public ResponseEntity<?> actualizarCompra(@PathVariable UUID uuid, @RequestBody CompraReqDTO compraReqDTO, Authentication authentication) {
+        return ResponseEntity.ok(ApiResponse.success(compraService.actualizarCompra(uuid, compraReqDTO, authentication)));
     }
 
     @GetMapping("/{uuid}/orden-compra/pdf")

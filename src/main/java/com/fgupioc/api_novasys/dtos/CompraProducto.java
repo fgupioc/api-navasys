@@ -19,7 +19,7 @@ public record CompraProducto(
         String subCategoria,
         String unidad,
         String url,
-        Double quantity,
+        BigDecimal quantity,
         BigDecimal unitCost,
         BigDecimal salePrice,
         BigDecimal discount

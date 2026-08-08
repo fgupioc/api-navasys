@@ -11,7 +11,7 @@ public interface IProductoPOS {
 
     String getCode();
 
-    Long getInventoryMovementId();
+    Long getInventoryStockId();
 
     String getProductName();
 
