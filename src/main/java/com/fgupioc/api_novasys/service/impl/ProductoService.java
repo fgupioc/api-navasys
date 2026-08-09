@@ -47,6 +47,7 @@ public class ProductoService implements IProductoService {
     private final AlmacenRepository almacenRepository;
     private final InventarioMovimientoRepository inventarioMovimientoRepository;
     private final ProductoImagenRepository productoImagenRepository;
+    private final InventarioStockRepository inventarioStockRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -268,20 +269,20 @@ public class ProductoService implements IProductoService {
 
     @Override
     public void desactivarAlmacen(Long id) throws RuntimeException {
-        InventarioMovimiento almacen = inventarioMovimientoRepository.findById(id)
+        InventarioStock almacen = inventarioStockRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Almacén no encontrado: " + id));
 
         almacen.setCodStatus(CONST.STATUS_INACTIVE);
-        inventarioMovimientoRepository.save(almacen);
+        inventarioStockRepository.save(almacen);
     }
 
     @Override
     public void activarAlmacen(Long id) throws RuntimeException {
-        InventarioMovimiento almacen = inventarioMovimientoRepository.findById(id)
+        InventarioStock almacen = inventarioStockRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Almacén no encontrado: " + id));
 
         almacen.setCodStatus(CONST.STATUS_ACTIVE);
-        inventarioMovimientoRepository.save(almacen);
+        inventarioStockRepository.save(almacen);
     }
 
     @Override

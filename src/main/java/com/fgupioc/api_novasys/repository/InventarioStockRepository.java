@@ -10,7 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import java.math.BigDecimal;
 import java.util.Optional;
 
-public interface InventarioStockRepository extends JpaRepository<InventarioStock, Integer> {
+public interface InventarioStockRepository extends JpaRepository<InventarioStock, Long> {
     @Modifying
     @Query("update InventarioStock im set im.quantity = im.quantity - :quantity where im.almacen.id = :warehouseId and im.producto.id = :productId")
     void restarStock(Long warehouseId, Long productId, BigDecimal quantity);
